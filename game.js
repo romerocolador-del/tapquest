@@ -1,3 +1,4 @@
+alert("GAME.JS CARGADO");
 // Telegram Web App
 const tg = window.Telegram.WebApp;
 tg.expand();
