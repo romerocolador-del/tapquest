@@ -7,44 +7,105 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: linear-gradient(180deg,#0f2027,#203a43,#2c5364);
-      color: white;
-      text-align: center;
-    }
-    h1 { margin: 20px 0; }
-    .card {
-      background: rgba(0,0,0,.65);
-      margin: 15px;
-      padding: 20px;
-      border-radius: 16px;
-    }
-    button {
-      width: 90%;
-      max-width: 320px;
-      padding: 15px;
-      margin: 8px auto;
-      display: block;
-      font-size: 18px;
-      border-radius: 16px;
-      border: none;
-      cursor: pointer;
-    }
-    button:disabled {
-      background: #555;
-      color: #aaa;
-    }
-    .tap {
-      background: gold;
-      color: black;
-      font-size: 22px;
-      font-weight: bold;
-    }
-    .back { background: #444; color: white; }
-    .hidden { display: none; }
-  </style>
+  body {
+    margin: 0;
+    font-family: 'Trebuchet MS', sans-serif;
+    background: radial-gradient(circle at top,#1e3c72,#2a5298);
+    color: #fff;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 32px;
+    margin-top: 15px;
+    text-shadow: 0 2px 8px #000;
+  }
+
+  .card {
+    background: linear-gradient(180deg,#141e30,#243b55);
+    margin: 16px;
+    padding: 20px;
+    border-radius: 22px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.6);
+    animation: fadeIn .4s ease;
+  }
+
+  button {
+    width: 92%;
+    max-width: 340px;
+    padding: 16px;
+    margin: 10px auto;
+    display: block;
+    font-size: 18px;
+    border-radius: 18px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(180deg,#f5af19,#f12711);
+    color: #000;
+    font-weight: bold;
+    transition: transform .1s, box-shadow .1s;
+    box-shadow: 0 4px 12px rgba(0,0,0,.6);
+  }
+
+  button:active {
+    transform: scale(.95);
+    box-shadow: 0 2px 6px rgba(0,0,0,.8);
+  }
+
+  button:disabled {
+    background: #555;
+    color: #aaa;
+    box-shadow: none;
+  }
+
+  .tap {
+    font-size: 24px;
+    background: linear-gradient(180deg,#00f260,#0575e6);
+    color: #fff;
+  }
+
+  .back {
+    background: linear-gradient(180deg,#434343,#000);
+    color: #fff;
+  }
+
+  .hidden { display: none; }
+
+  /* BARRAS */
+  .bar {
+    width: 100%;
+    height: 16px;
+    background: #222;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 6px 0 12px;
+  }
+
+  .fill {
+    height: 100%;
+    transition: width .3s;
+  }
+
+  .energy { background: linear-gradient(90deg,#00ff87,#60efff); }
+  .xp { background: linear-gradient(90deg,#ff512f,#dd2476); }
+
+  /* ANIMACIONES */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hit {
+    animation: hit .15s;
+  }
+
+  @keyframes hit {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+    100% { transform: translateX(0); }
+  }
+</style>
 </head>
 
 <body>
@@ -66,7 +127,15 @@
   <h2 id="zoneName"></h2>
 
   <p>🪙 Oro: <span id="gold">0</span></p>
-  <p>🔋 Energía: <span id="energy">100</span></p>
+  <p>🔋 Energía</p>
+<div class="bar">
+  <div id="energyBar" class="fill energy"></div>
+</div>
+
+<p>⭐ XP</p>
+<div class="bar">
+  <div id="xpBar" class="fill xp"></div>
+</div>
   <p>⭐ XP: <span id="xpZone">0</span></p>
 
   <p>👹 Enemigo HP: <span id="enemy">0</span></p>
@@ -139,6 +208,10 @@ function back() {
 
 /* ===== COMBATE ===== */
 function tap() {
+  document.getElementById("zone").classList.add("hit");
+setTimeout(() => {
+  document.getElementById("zone").classList.remove("hit");
+}, 150);
   if (energy <= 0) return;
 
   energy--;
@@ -205,6 +278,11 @@ function updateUI() {
   document.getElementById("xp").innerText = xp;
   document.getElementById("xpZone").innerText = xp;
   document.getElementById("level").innerText = level;
+  document.getElementById("energyBar").style.width = energy + "%";
+
+  let xpNeed = level * 30;
+  document.getElementById("xpBar").style.width =
+    Math.min((xp / xpNeed) * 100, 100) + "%";
 }
 function updateInventory() {
   document.getElementById("swords").innerText = inventory.swords;
