@@ -2,39 +2,216 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>TapQuest – Reinos de TON</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TapQuest – Reinos de TON</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
 <style>
 body{
- margin:0;font-family:Trebuchet MS,sans-serif;
- background:radial-gradient(circle at top,#1e3c72,#2a5298);
- color:#fff;text-align:center;overflow:hidden
+  margin:0;
+  background:radial-gradient(circle at top,#1b2a4a,#05070d);
+  font-family:system-ui,sans-serif;
+  color:#fff;
+  text-align:center;
 }
-h1{margin:10px}
-.card{
- background:linear-gradient(180deg,#141e30,#243b55);
- margin:10px;padding:16px;border-radius:20px;
- box-shadow:0 8px 22px rgba(0,0,0,.6)
+.container{max-width:420px;margin:auto;padding:14px}
+h1{margin:6px 0}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
 }
-button{
- width:92%;padding:14px;margin:6px auto;
- border:none;border-radius:16px;
- font-size:16px;font-weight:bold;cursor:pointer
-}
-.tap{background:linear-gradient(180deg,#00f260,#0575e6);color:#fff}
-.back{background:#000;color:#fff}
-.withdraw{background:linear-gradient(180deg,#f7971e,#ffd200);color:#000}
-.hidden{display:none}
-.bar{width:100%;height:14px;background:#222;border-radius:10px;overflow:hidden}
-.fill{height:100%;transition:.25s}
+
+.bar{height:14px;background:#222;border-radius:10px;overflow:hidden;margin:6px 0}
+.fill{height:100%;transition:.3s}
 .energy{background:linear-gradient(90deg,#00ff87,#60efff)}
-.hit{animation:hit .15s ease-out}
-@keyframes hit{40%{transform:scale(1.02)}}
-.crit{box-shadow:0 0 30px gold!important}
+.xp{background:linear-gradient(90deg,#ff512f,#dd2476)}
+
+.enemy{
+  margin:20px auto;
+  width:180px;height:180px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  background:radial-gradient(circle,#4caf50,#1b5e20);
+  box-shadow:0 0 30px #2aff8a;
+  transition:.1s;
+  position:relative;
+}
+
+.enemy.hit{animation:shake .15s}
+.enemy.crit{box-shadow:0 0 60px gold}
+
+@keyframes shake{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-4px)}
+  50%{transform:translateX(4px)}
+  100%{transform:translateX(0)}
+}
+
+button{
+  width:100%;padding:14px;margin-top:8px;
+  font-size:18px;border:none;border-radius:14px;
+  font-weight:bold;color:#fff;
+}
+
+.tap{background:linear-gradient(180deg,#00f260,#0575e6)}
+.menu{background:linear-gradient(180deg,#ff9800,#f44336)}
+
+.float{
+  position:absolute;
+  font-weight:bold;
+  animation:floatUp 1s forwards;
+  pointer-events:none;
+}
+
+@keyframes floatUp{
+  from{opacity:1;transform:translateY(0)}
+  to{opacity:0;transform:translateY(-40px)}
+}
+
+.panel{
+  background:#0e1628;
+  border-radius:16px;
+  padding:12px;
+  margin-top:10px;
+  display:none;
+}
+
+.show{display:block}
+
+.shop-btn{
+  background:linear-gradient(180deg,#8e2de2,#4a00e0);
+  margin-top:6px;
+}
+
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>⚔️ TapQuest</h1>
+
+<div class="top">
+  <div>🪙 <span id="gold">0</span></div>
+  <div>🌍 <span id="zoneName">Bosque</span></div>
+</div>
+
+<div class="bar"><div id="energyBar" class="fill energy"></div></div>
+<div class="bar"><div id="xpBar" class="fill xp"></div></div>
+
+<div id="enemy" class="enemy">🌳</div>
+
+<button class="tap" onclick="tap()">TAP ATACAR</button>
+<button class="menu" onclick="togglePanel('map')">🗺 Mapa</button>
+<button class="menu" onclick="togglePanel('shop')">🛒 Tienda</button>
+
+<div id="map" class="panel">
+  <h3>Mapa</h3>
+  <button onclick="changeZone(0)">🌳 Bosque</button>
+  <button onclick="changeZone(1)">🏜 Desierto</button>
+  <button onclick="changeZone(2)">🌋 Volcán</button>
+</div>
+
+<div id="shop" class="panel">
+  <h3>Tienda</h3>
+  <p>Daño +1</p>
+  <button class="shop-btn" onclick="buyDamage()">Comprar (🪙10)</button>
+</div>
+
+</div>
+
+<script>
+Telegram.WebApp.ready();
+
+let data = JSON.parse(localStorage.getItem("tapquest")) || {
+  energy:100,
+  xp:0,
+  gold:0,
+  damage:1,
+  zone:0
+};
+
+const zones = [
+  {name:"Bosque",emoji:"🌳",hp:100},
+  {name:"Desierto",emoji:"🏜",hp:150},
+  {name:"Volcán",emoji:"🌋",hp:220}
+];
+
+function save(){
+  localStorage.setItem("tapquest",JSON.stringify(data));
+}
+
+function updateUI(){
+  energyBar.style.width = data.energy+"%";
+  xpBar.style.width = data.xp+"%";
+  gold.textContent = data.gold;
+  zoneName.textContent = zones[data.zone].name;
+  enemy.textContent = zones[data.zone].emoji;
+}
+
+function tap(){
+  if(data.energy<=0)return;
+  data.energy--;
+
+  let crit=Math.random()<0.15;
+  let dmg=(crit?10:5)+data.damage;
+  data.xp+=dmg;
+
+  hitEffect(dmg,crit);
+
+  if(data.xp>=100){
+    data.xp=0;
+    data.gold+=5;
+    data.energy=100;
+  }
+
+  save();updateUI();
+}
+
+function hitEffect(dmg,crit){
+  enemy.classList.add("hit");
+  if(crit)enemy.classList.add("crit");
+
+  setTimeout(()=>enemy.classList.remove("hit","crit"),150);
+
+  let f=document.createElement("div");
+  f.className="float";
+  f.style.left="50%";
+  f.style.top="50%";
+  f.style.color=crit?"gold":"#ff5252";
+  f.textContent="-"+dmg;
+  enemy.appendChild(f);
+  setTimeout(()=>f.remove(),1000);
+
+  if(navigator.vibrate){
+    navigator.vibrate(crit?[30,20,30]:20);
+  }
+}
+
+function togglePanel(id){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("show"));
+  document.getElementById(id).classList.add("show");
+}
+
+function changeZone(z){
+  data.zone=z;
+  save();updateUI();
+}
+
+function buyDamage(){
+  if(data.gold>=10){
+    data.gold-=10;
+    data.damage++;
+    save();updateUI();
+  }
+}
+
+updateUI();
+</script>
+</body>
+</html>.crit{box-shadow:0 0 30px gold!important}
 .particle{position:absolute;width:6px;height:6px;border-radius:50%;
  animation:particle .6s ease-out forwards;pointer-events:none}
 @keyframes particle{to{opacity:0;transform:translate(var(--x),var(--y))}}
