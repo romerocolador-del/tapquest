@@ -65,6 +65,19 @@
   <p>👹 Enemigo HP: <span id="enemy">10</span></p>
 
   <button class="tap" onclick="tap()">⚔️ ATACAR</button>
+  <button onclick="openInventory()">🎒 Inventario</button>
+
+<div class="card hidden" id="inventory">
+  <h2>🎒 Inventario</h2>
+
+  <p>🗡️ Espadas: <span id="swords">0</span></p>
+  <button onclick="useSword()">Usar espada</button>
+
+  <p>🧪 Pociones: <span id="potions">0</span></p>
+  <button onclick="usePotion()">Usar poción</button>
+
+  <button class="back" onclick="closeInventory()">⬅️ Volver</button>
+</div>
   <button class="back" onclick="back()">⬅️ Volver</button>
 </div>
 
