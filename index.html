@@ -1,64 +1,40 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>TapQuest – Reinos de TON</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta charset="UTF-8">
+  <title>TapQuest – Reinos de TON</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
+  <!-- Telegram Web App -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
-
-<h1>🗺️ TapQuest – Reinos de TON</h1>
-
-<div class="card">
-  <h2>Mapa del Mundo</h2>
-
-  <button onclick="enterZone(1)">🌲 Bosque Inicial</button><br><br>
-
-  <button disabled>🏜️ Desierto (Bloqueado)</button><br><br>
-  <button disabled>🏔️ Montañas (Bloqueado)</button>
-</div>
-
-<div class="card" id="zone" style="display:none;">
-  <h2 id="zoneName"></h2>
-  <p>🪙 Oro: <span id="gold">0</span></p>
-  <p>🔋 Energía: <span id="energy">100</span></p>
-  <button onclick="tap()">⚔️ ATACAR</button><br><br>
-  <button onclick="back()">⬅️ Volver al mapa</button>
-</div>
-
-<script src="game.js"></script>
-
-</body>
 
 <h1>⚔️ TapQuest</h1>
 
-<div class="card">
-  🪙 Oro: <span id="gold">0</span><br>
-  🔋 Energía: <span id="energy">100</span>
+<!-- MAPA -->
+<div class="card" id="map">
+  <h2>🗺️ Mapa del Mundo</h2>
+
+  <button onclick="enterZone(1)">🌲 Bosque Inicial</button>
+  <button onclick="enterZone(2)" disabled>🏜️ Desierto (Bloqueado)</button>
+  <button onclick="enterZone(3)" disabled>🏔️ Montañas (Bloqueado)</button>
 </div>
 
-<button onclick="tap()">⚔️ TAP</button>
+<!-- ZONA DE AVENTURA -->
+<div class="card hidden" id="zone">
+  <h2 id="zoneName"></h2>
 
-<script>
-const tg = window.Telegram.WebApp;
-tg.expand();
+  <p>🪙 Oro: <span id="gold">0</span></p>
+  <p>🔋 Energía: <span id="energy">100</span></p>
 
-let gold = 0;
-let energy = 100;
+  <button class="tap" onclick="tap()">⚔️ ATACAR</button>
 
-function tap(){
-  if(energy <= 0){
-    alert("Sin energía 😴");
-    return;
-  }
-  gold++;
-  energy--;
-  document.getElementById("gold").innerText = gold;
-  document.getElementById("energy").innerText = energy;
-}
-</script>
+  <button class="back" onclick="back()">⬅️ Volver al mapa</button>
+</div>
 
+<script src="game.js"></script>
 </body>
 </html>
