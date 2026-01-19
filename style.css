@@ -47,4 +47,17 @@ button:disabled {
 
 .hidden {
   display: none;
+}.tap {
+  background: gold;
+  color: black;
+  font-size: 22px;
+}
+
+.back {
+  background: #444;
+  color: white;
+}
+
+.hidden {
+  display: none;
 }
