@@ -7,31 +7,30 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-body{
-  margin:0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(#1a2a3a,#0f2027);
-  color:white;
-  text-align:center;
-}
-h1{margin-top:20px;}
-.card{
-  background:rgba(0,0,0,.6);
-  margin:15px;
-  padding:20px;
-  border-radius:15px;
-}
-button{
-  font-size:22px;
-  padding:18px 40px;
-  border:none;
-  border-radius:20px;
-  background:#f5c542;
-}
-</style>
-</head>
-
 <body>
+
+<h1>🗺️ TapQuest – Reinos de TON</h1>
+
+<div class="card">
+  <h2>Mapa del Mundo</h2>
+
+  <button onclick="enterZone(1)">🌲 Bosque Inicial</button><br><br>
+
+  <button disabled>🏜️ Desierto (Bloqueado)</button><br><br>
+  <button disabled>🏔️ Montañas (Bloqueado)</button>
+</div>
+
+<div class="card" id="zone" style="display:none;">
+  <h2 id="zoneName"></h2>
+  <p>🪙 Oro: <span id="gold">0</span></p>
+  <p>🔋 Energía: <span id="energy">100</span></p>
+  <button onclick="tap()">⚔️ ATACAR</button><br><br>
+  <button onclick="back()">⬅️ Volver al mapa</button>
+</div>
+
+<script src="game.js"></script>
+
+</body>
 
 <h1>⚔️ TapQuest</h1>
 
