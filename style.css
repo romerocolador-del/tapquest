@@ -102,6 +102,74 @@ button{
 .common{border-left:4px solid #aaa}
 .rare{border-left:4px solid #4aa3ff}
 .epic{border-left:4px solid #b388ff}
+.legendary{border-left:4px solid gold}  height:14px;
+  background:#1a1a1a;
+  border-radius:10px;
+  overflow:hidden;
+}
+.fill{height:100%;transition:.2s}
+.hp{background:linear-gradient(90deg,#ff5252,#ff1744)}
+.xp{background:linear-gradient(90deg,#ffd54f,#fbc02d)}
+
+/* SPRITES */
+.sprite{
+  width:96px;
+  height:96px;
+  margin:16px auto;
+  image-rendering:pixelated;
+  background-repeat:no-repeat;
+}
+
+/* HERO */
+.hero-idle{
+  background:url("assets/hero_idle.png");
+  animation:idle .8s steps(6) infinite;
+}
+.hero-attack{
+  background:url("assets/hero_attack.png");
+  animation:attack .6s steps(8);
+}
+
+/* ENEMY */
+.enemy-idle{
+  background:url("assets/enemy_idle.png");
+  animation:idle .8s steps(6) infinite;
+}
+.enemy-hit{
+  background:url("assets/enemy_hit.png");
+  animation:hit .4s steps(4);
+}
+
+@keyframes idle{100%{background-position:-576px}}
+@keyframes attack{100%{background-position:-768px}}
+@keyframes hit{100%{background-position:-384px}}
+
+/* DAMAGE FLOAT */
+.float{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  font-weight:bold;
+  animation:floatUp .8s forwards;
+}
+@keyframes floatUp{
+  to{opacity:0;transform:translate(-50%,-40px)}
+}
+
+/* INVENTORY */
+.item{
+  background:#1c2541;
+  padding:10px;
+  border-radius:12px;
+  margin:6px 0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.item img{width:40px}
+.common{border-left:4px solid #aaa}
+.rare{border-left:4px solid #4aa3ff}
+.epic{border-left:4px solid #b388ff}
 .legendary{border-left:4px solid gold}
 
 /* BOSS */
