@@ -5,36 +5,117 @@
   <title>TapQuest – Reinos de TON</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Telegram Web App -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: linear-gradient(180deg,#0f2027,#203a43,#2c5364);
+      color: white;
+      text-align: center;
+    }
+    h1 { margin: 20px 0; }
+    .card {
+      background: rgba(0,0,0,.65);
+      margin: 20px;
+      padding: 20px;
+      border-radius: 16px;
+    }
+    button {
+      width: 90%;
+      max-width: 320px;
+      padding: 15px;
+      margin: 10px auto;
+      display: block;
+      font-size: 18px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+    }
+    .tap {
+      background: gold;
+      color: black;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .back {
+      background: #444;
+      color: white;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
+
 <body>
 
 <h1>⚔️ TapQuest</h1>
 
-<!-- MAPA -->
 <div class="card" id="map">
   <h2>🗺️ Mapa del Mundo</h2>
-
-  <button onclick="enterZone(1)">🌲 Bosque Inicial</button>
-  <button disabled>🏜️ Desierto (Bloqueado)</button>
-  <button disabled>🏔️ Montañas (Bloqueado)</button>
+  <button onclick="enterZone()">🌲 Bosque Inicial</button>
 </div>
 
-<!-- ZONA DE COMBATE -->
 <div class="card hidden" id="zone">
-  <h2 id="zoneName"></h2>
-
+  <h2>🌲 Bosque Inicial</h2>
   <p>🪙 Oro: <span id="gold">0</span></p>
   <p>🔋 Energía: <span id="energy">100</span></p>
-
-  <p>👹 Enemigo HP: <span id="enemyHP">0 / 0</span></p>
-  <p id="mission">🗡 Derrota 5 enemigos (0/5)</p>
+  <p>👹 Enemigo HP: <span id="enemy">10</span></p>
 
   <button class="tap" onclick="tap()">⚔️ ATACAR</button>
-  <button class="back" onclick="back()">⬅️ Volver al mapa</button>
+  <button class="back" onclick="back()">⬅️ Volver</button>
+</div>
+
+<script>
+  // 🔥 PRUEBA DEFINITIVA
+  alert("JS CARGADO CORRECTAMENTE");
+
+  let gold = 0;
+  let energy = 100;
+  let enemy = 10;
+
+  function enterZone() {
+    document.getElementById("map").classList.add("hidden");
+    document.getElementById("zone").classList.remove("hidden");
+  }
+
+  function back() {
+    document.getElementById("zone").classList.add("hidden");
+    document.getElementById("map").classList.remove("hidden");
+  }
+
+  function tap() {
+    if (energy <= 0) {
+      alert("Sin energía");
+      return;
+    }
+
+    energy--;
+    enemy--;
+
+    if (enemy <= 0) {
+      enemy = 10;
+      gold += 2;
+      alert("👹 Enemigo derrotado +2 oro");
+    }
+
+    document.getElementById("gold").innerText = gold;
+    document.getElementById("energy").innerText = energy;
+    document.getElementById("enemy").innerText = enemy;
+  }
+
+  setInterval(() => {
+    if (energy < 100) {
+      energy++;
+      document.getElementById("energy").innerText = energy;
+    }
+  }, 5000);
+</script>
+
+</body>
+</html>  <button class="back" onclick="back()">⬅️ Volver al mapa</button>
 </div>
 
 <script src="game.js"></script>
