@@ -6,6 +6,7 @@
 <title>TapQuest – Reinos de TON</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
 <style>
 body{
@@ -18,11 +19,7 @@ body{
 .container{max-width:420px;margin:auto;padding:14px}
 h1{margin:6px 0}
 
-.top{
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-}
+.top{display:flex;justify-content:space-between;font-size:14px}
 
 .bar{height:14px;background:#222;border-radius:10px;overflow:hidden;margin:6px 0}
 .fill{height:100%;transition:.3s}
@@ -33,7 +30,7 @@ h1{margin:6px 0}
   margin:20px auto;
   width:180px;height:180px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:22px;
+  font-size:26px;
   background:radial-gradient(circle,#4caf50,#1b5e20);
   box-shadow:0 0 30px #2aff8a;
   transition:.1s;
@@ -58,6 +55,8 @@ button{
 
 .tap{background:linear-gradient(180deg,#00f260,#0575e6)}
 .menu{background:linear-gradient(180deg,#ff9800,#f44336)}
+.wallet{background:linear-gradient(180deg,#0098ea,#005bbb)}
+.shop-btn{background:linear-gradient(180deg,#8e2de2,#4a00e0)}
 
 .float{
   position:absolute;
@@ -81,11 +80,12 @@ button{
 
 .show{display:block}
 
-.shop-btn{
-  background:linear-gradient(180deg,#8e2de2,#4a00e0);
+.nft{
+  background:#1c2541;
+  padding:10px;
+  border-radius:12px;
   margin-top:6px;
 }
-
 </style>
 </head>
 
@@ -95,7 +95,7 @@ button{
 
 <div class="top">
   <div>🪙 <span id="gold">0</span></div>
-  <div>🌍 <span id="zoneName">Bosque</span></div>
+  <div id="walletStatus">🔌 No wallet</div>
 </div>
 
 <div class="bar"><div id="energyBar" class="fill energy"></div></div>
@@ -104,20 +104,12 @@ button{
 <div id="enemy" class="enemy">🌳</div>
 
 <button class="tap" onclick="tap()">TAP ATACAR</button>
-<button class="menu" onclick="togglePanel('map')">🗺 Mapa</button>
-<button class="menu" onclick="togglePanel('shop')">🛒 Tienda</button>
+<button class="wallet" id="connectBtn">🔗 Conectar Wallet TON</button>
+<button class="menu" onclick="togglePanel('nfts')">🖼 NFTs</button>
 
-<div id="map" class="panel">
-  <h3>Mapa</h3>
-  <button onclick="changeZone(0)">🌳 Bosque</button>
-  <button onclick="changeZone(1)">🏜 Desierto</button>
-  <button onclick="changeZone(2)">🌋 Volcán</button>
-</div>
-
-<div id="shop" class="panel">
-  <h3>Tienda</h3>
-  <p>Daño +1</p>
-  <button class="shop-btn" onclick="buyDamage()">Comprar (🪙10)</button>
+<div id="nfts" class="panel">
+  <h3>Mis NFTs</h3>
+  <div id="nftList"></div>
 </div>
 
 </div>
@@ -125,18 +117,39 @@ button{
 <script>
 Telegram.WebApp.ready();
 
+/* ---------- TON CONNECT ---------- */
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: 'https://raw.githubusercontent.com/ton-connect/demo-dapp/main/manifest.json'
+});
+
+const connectBtn = document.getElementById("connectBtn");
+const walletStatus = document.getElementById("walletStatus");
+
+connectBtn.onclick = async ()=>{
+  await tonConnectUI.connectWallet();
+};
+
+tonConnectUI.onStatusChange(wallet=>{
+  if(wallet){
+    walletStatus.textContent = "🟢 Wallet conectada";
+    connectBtn.style.display="none";
+    save();
+  }
+});
+
+/* ---------- GAME DATA ---------- */
 let data = JSON.parse(localStorage.getItem("tapquest")) || {
   energy:100,
   xp:0,
   gold:0,
   damage:1,
-  zone:0
+  nfts:[]
 };
 
-const zones = [
-  {name:"Bosque",emoji:"🌳",hp:100},
-  {name:"Desierto",emoji:"🏜",hp:150},
-  {name:"Volcán",emoji:"🌋",hp:220}
+const nftPool = [
+  {name:"Espada del Bosque",rare:"Común"},
+  {name:"Amuleto del Desierto",rare:"Raro"},
+  {name:"Corazón del Volcán",rare:"Épico"}
 ];
 
 function save(){
@@ -144,11 +157,11 @@ function save(){
 }
 
 function updateUI(){
-  energyBar.style.width = data.energy+"%";
-  xpBar.style.width = data.xp+"%";
-  gold.textContent = data.gold;
-  zoneName.textContent = zones[data.zone].name;
-  enemy.textContent = zones[data.zone].emoji;
+  energyBar.style.width=data.energy+"%";
+  xpBar.style.width=data.xp+"%";
+  gold.textContent=data.gold;
+  enemy.textContent="🌳";
+  renderNFTs();
 }
 
 function tap(){
@@ -163,8 +176,13 @@ function tap(){
 
   if(data.xp>=100){
     data.xp=0;
-    data.gold+=5;
     data.energy=100;
+    data.gold+=5;
+
+    if(Math.random()<0.25){
+      let nft=nftPool[Math.floor(Math.random()*nftPool.length)];
+      data.nfts.push(nft);
+    }
   }
 
   save();updateUI();
@@ -173,7 +191,6 @@ function tap(){
 function hitEffect(dmg,crit){
   enemy.classList.add("hit");
   if(crit)enemy.classList.add("crit");
-
   setTimeout(()=>enemy.classList.remove("hit","crit"),150);
 
   let f=document.createElement("div");
@@ -185,9 +202,7 @@ function hitEffect(dmg,crit){
   enemy.appendChild(f);
   setTimeout(()=>f.remove(),1000);
 
-  if(navigator.vibrate){
-    navigator.vibrate(crit?[30,20,30]:20);
-  }
+  if(navigator.vibrate)navigator.vibrate(crit?[30,20,30]:20);
 }
 
 function togglePanel(id){
@@ -195,214 +210,24 @@ function togglePanel(id){
   document.getElementById(id).classList.add("show");
 }
 
-function changeZone(z){
-  data.zone=z;
-  save();updateUI();
-}
-
-function buyDamage(){
-  if(data.gold>=10){
-    data.gold-=10;
-    data.damage++;
-    save();updateUI();
+function renderNFTs(){
+  nftList.innerHTML="";
+  if(data.nfts.length===0){
+    nftList.innerHTML="<p>No tienes NFTs aún</p>";
+    return;
   }
+  data.nfts.forEach(n=>{
+    let d=document.createElement("div");
+    d.className="nft";
+    d.textContent=`🖼 ${n.name} (${n.rare})`;
+    nftList.appendChild(d);
+  });
 }
 
 updateUI();
 </script>
 </body>
-</html>.crit{box-shadow:0 0 30px gold!important}
-.particle{position:absolute;width:6px;height:6px;border-radius:50%;
- animation:particle .6s ease-out forwards;pointer-events:none}
-@keyframes particle{to{opacity:0;transform:translate(var(--x),var(--y))}}
-.damage{position:absolute;font-weight:bold;animation:float .8s ease-out forwards}
-@keyframes float{to{opacity:0;transform:translateY(-40px)}}
-</style>
-</head>
-
-<body>
-
-<h1>⚔️ TapQuest</h1>
-
-<div class="card" id="map">
- <button onclick="connectWallet()">🔗 Conectar Wallet TON</button>
- <p id="wallet">Wallet: no conectada</p>
- <p>💎 TapCoin <span id="tapcoin">0</span> / Día <span id="daily">0</span></p>
- <p>🗡️ Arma: <span id="weaponName"></span></p>
- <button onclick="enterZone()">🌲 Jugar</button>
- <button class="withdraw" onclick="openWithdraw()">💸 Retirar</button>
-</div>
-
-<div class="card hidden" id="zone">
- <h2 id="enemyName"></h2>
- <p>👹 HP <span id="enemy">0</span></p>
- <div class="bar"><div id="energyBar" class="fill energy"></div></div>
- <button class="tap" onclick="tap()">⚔️ ATACAR</button>
- <button class="back" onclick="back()">⬅️ Volver</button>
-</div>
-
-<div class="card hidden" id="withdraw">
- <h2>💸 Retiro</h2>
- <p>TapCoin: <b id="wc"></b></p>
- <p>100 TapCoin = 0.1 TON</p>
- <button class="withdraw" onclick="requestWithdraw()">Solicitar</button>
- <button class="back" onclick="closeWithdraw()">⬅️ Volver</button>
-</div>
-
-<script>
-// ===== TON =====
-const tonConnectUI=new TON_CONNECT_UI.TonConnectUI({
- manifestUrl:'https://raw.githubusercontent.com/ton-connect/demo-dapp/main/public/tonconnect-manifest.json'
-});
-let walletAddr=null;
-async function connectWallet(){
- const w=await tonConnectUI.connectWallet();
- walletAddr=w.account.address;
- wallet.innerText="Wallet: "+walletAddr.slice(0,6)+"..."+walletAddr.slice(-4);
-}
-
-// ===== ECONOMÍA =====
-let tapCoin=0;
-let dailyCap=300;
-let dailyEarned=0;
-let lastDay=new Date().toDateString();
-
-// ===== ARMAS =====
-const weapons=[
- {name:"Espada Común",dmg:1,crit:0},
- {name:"Espada Rara",dmg:2,crit:.05},
- {name:"Espada Épica",dmg:4,crit:.1},
- {name:"Espada Legendaria",dmg:7,crit:.2}
-];
-let weapon=weapons[0];
-
-// ===== ENEMIGOS =====
-const enemies=[
- {name:"Slime",hp:5,coin:1},
- {name:"Goblin",hp:8,coin:1},
- {name:"Orco",hp:12,coin:2},
- {name:"👑 Dragón",hp:40,coin:5}
-];
-let enemyObj,enemyHP;
-
-// ===== ESTADO =====
-let energy=100;
-let lastWithdraw=0;
-
-// ===== ZONA =====
-function enterZone(){
- map.classList.add("hidden");
- zone.classList.remove("hidden");
- spawnEnemy();updateUI();
-}
-function back(){
- zone.classList.add("hidden");
- map.classList.remove("hidden");
-}
-
-// ===== COMBATE =====
-function tap(){
- resetDaily();
- if(energy<=0)return;
- energy--;
-
- let crit=Math.random()<(.15+weapon.crit);
- let dmg=weapon.dmg*(crit?2:1);
- enemyHP-=dmg;
-
- if(enemyHP<=0){
-  if(dailyEarned<dailyCap){
-   let gain=Math.min(enemyObj.coin,dailyCap-dailyEarned);
-   tapCoin+=gain;
-   dailyEarned+=gain;
-  }
-  if(Math.random()<.12)
-   weapon=weapons[Math.floor(Math.random()*weapons.length)];
-  spawnEnemy();
- }
-
- effects(dmg,crit);
- updateUI();
-}
-
-// ===== EFECTOS =====
-function effects(dmg,crit){
- zone.classList.remove("hit","crit");void zone.offsetWidth;
- zone.classList.add("hit"); if(crit)zone.classList.add("crit");
- for(let i=0;i<8;i++){
-  let p=document.createElement("div");
-  p.className="particle";
-  p.style.background=crit?"gold":"white";
-  p.style.left="50%";p.style.top="45%";
-  p.style.setProperty("--x",(Math.random()*80-40)+"px");
-  p.style.setProperty("--y",(Math.random()*-80)+"px");
-  document.body.appendChild(p);
-  setTimeout(()=>p.remove(),600);
- }
- let d=document.createElement("div");
- d.className="damage";
- d.style.color=crit?"gold":"white";
- d.style.left="50%";d.style.top="40%";
- d.innerText=crit?"CRIT "+dmg:dmg;
- document.body.appendChild(d);
- setTimeout(()=>d.remove(),800);
-}
-
-// ===== ENEMIGO =====
-function spawnEnemy(){
- enemyObj=Math.random()>.9?enemies[3]:enemies[Math.floor(Math.random()*3)];
- enemyHP=enemyObj.hp;
- enemyName.innerText=enemyObj.name;
-}
-
-// ===== RETIRO =====
-function openWithdraw(){
- map.classList.add("hidden");withdraw.classList.remove("hidden");
- wc.innerText=tapCoin;
-}
-function closeWithdraw(){
- withdraw.classList.add("hidden");map.classList.remove("hidden");
-}
-function requestWithdraw(){
- if(!walletAddr)return alert("Conecta wallet");
- if(tapCoin<50)return alert("Mínimo 50");
- if(Date.now()-lastWithdraw<86400000)
-  return alert("1 retiro cada 24h");
- tapCoin-=50;lastWithdraw=Date.now();
- alert("Solicitud enviada (manual)");
- updateUI();closeWithdraw();
-}
-
-// ===== UTIL =====
-function resetDaily(){
- let today=new Date().toDateString();
- if(today!==lastDay){
-  dailyEarned=0;
-  lastDay=today;
- }
-}
-function updateUI(){
- tapcoin.innerText=tapCoin;
- daily.innerText=dailyEarned+"/"+dailyCap;
- energyBar.style.width=energy+"%";
- enemy.innerText=enemyHP;
- weaponName.innerText=weapon.name;
-}
-setInterval(()=>{if(energy<100){energy++;updateUI()}},5000);
-
-if(window.Telegram){Telegram.WebApp.ready();Telegram.WebApp.expand()}
-</script>
-
-</body>
-</html>  <button onclick="connectWallet()">🔗 Conectar Wallet TON</button>
-  <p id="wallet">Wallet: no conectada</p>
-
-  <p>🧬 Nivel <span id="level">1</span> | ⭐ XP <span id="xp">0</span></p>
-  <p>🗡️ Arma: <span id="weaponName"></span></p>
-
-  <button onclick="enterZone()">🌲 Entrar al Bosque</button>
-  <button onclick="openMissions()">📅 Misiones Diarias</button>
-  <button onclick="openReferrals()">🤝 Referidos</button>
+</html>eferrals()">🤝 Referidos</button>
 </div>
 
 <div class="card hidden" id="zone">
