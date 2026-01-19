@@ -1,40 +1,98 @@
 Telegram.WebApp.ready();
 
-/* ================= DATA ================= */
+/* ========= DATA ========= */
 let data = JSON.parse(localStorage.getItem("tapquest")) || {
   level:1,
   xp:0,
-  coin:0,
-  weapon:null,
-  inventory:[],
-  zone:0
+  coin:0
 };
 
-const zones = [
-  {name:"🌲 Bosque", enemyHp:100, reward:5},
-  {name:"🏔️ Montaña", enemyHp:160, reward:8},
-  {name:"🌋 Volcán", enemyHp:220, reward:12}
-];
+let enemyHp = 100;
+const enemyMaxHp = 100;
 
-let enemyHp = zones[data.zone].enemyHp;
-let isBoss = false;
-
-/* ================= ITEMS ================= */
-const dropTable = [
-  {id:"sword_common",name:"Espada Común",rarity:"common",dmg:2,img:"assets/items/sword_common.png",chance:0.5},
-  {id:"sword_rare",name:"Espada Rara",rarity:"rare",dmg:5,img:"assets/items/sword_rare.png",chance:0.25},
-  {id:"sword_epic",name:"Espada Épica",rarity:"epic",dmg:8,img:"assets/items/sword_epic.png",chance:0.15},
-  {id:"sword_leg",name:"Espada Legendaria",rarity:"legendary",dmg:12,img:"assets/items/sword_legendary.png",chance:0.1}
-];
-
-/* ================= UI ================= */
-function updateMenu(){
-  level.textContent=data.level;
-  xp.textContent=data.xp;
-  coin.textContent=data.coin;
-  xpBar.style.width=data.xp+"%";
-}
+/* ========= SAVE ========= */
 function save(){
+  localStorage.setItem("tapquest", JSON.stringify(data));
+}
+
+/* ========= UI ========= */
+function updateMenu(){
+  document.getElementById("level").textContent = data.level;
+  document.getElementById("xp").textContent = data.xp;
+  document.getElementById("coin").textContent = data.coin;
+}
+
+function updateEnemyBar(){
+  const bar = document.getElementById("enemyHpBar");
+  bar.style.width = (enemyHp / enemyMaxHp * 100) + "%";
+}
+
+/* ========= NAV ========= */
+function startGame(){
+  document.getElementById("menu").classList.remove("show");
+  document.getElementById("game").classList.add("show");
+  resetEnemy();
+}
+
+function backMenu(){
+  document.getElementById("game").classList.remove("show");
+  document.getElementById("menu").classList.add("show");
+  updateMenu();
+}
+
+/* ========= ENEMY ========= */
+function resetEnemy(){
+  enemyHp = enemyMaxHp;
+  updateEnemyBar();
+}
+
+/* ========= COMBAT ========= */
+function attack(){
+  if(enemyHp <= 0) return;
+
+  const enemy = document.getElementById("enemy");
+
+  let dmg = Math.floor(Math.random() * 6) + 4;
+  enemyHp -= dmg;
+
+  // hit effect
+  enemy.classList.add("hit");
+  setTimeout(()=>enemy.classList.remove("hit"),120);
+
+  // floating damage
+  let f = document.createElement("div");
+  f.className = "float";
+  f.style.left = "50%";
+  f.style.top = "50%";
+  f.textContent = "-" + dmg;
+  enemy.appendChild(f);
+  setTimeout(()=>f.remove(),1000);
+
+  updateEnemyBar();
+
+  if(enemyHp <= 0){
+    winEnemy();
+  }
+}
+
+/* ========= WIN ========= */
+function winEnemy(){
+  data.xp += 20;
+  data.coin += 5;
+
+  if(data.xp >= 100){
+    data.xp = 0;
+    data.level++;
+  }
+
+  save();
+  updateMenu();
+  resetEnemy();
+}
+
+/* ========= INIT ========= */
+updateMenu();
+save();function save(){
   localStorage.setItem("tapquest",JSON.stringify(data));
 }
 
