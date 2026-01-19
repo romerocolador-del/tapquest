@@ -1,111 +1,17 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TapQuest – Reinos de TON</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,Arial;
-  background:radial-gradient(circle at top,#071a33,#020617);
-  color:#fff;
-  text-align:center;
-}
-
-/* ================= UI ================= */
-.screen{display:none;padding:16px}
-.show{display:block}
-
-.card{
-  background:#0f2a52;
-  border-radius:18px;
-  padding:14px;
-  margin-bottom:14px;
-}
-
-button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:16px;
-  font-size:17px;
-  font-weight:bold;
-  margin-top:10px;
-  cursor:pointer;
-}
-.play{background:linear-gradient(180deg,#2ecc71,#27ae60)}
-.tap{background:linear-gradient(180deg,#4aa3ff,#2d7bff)}
-.back{background:#555}
-
-/* ================= BARS ================= */
-.bar{
-  width:100%;
-  height:14px;
-  background:#1a1a1a;
-  border-radius:10px;
-  overflow:hidden;
-  margin:6px 0;
-}
-.fill{height:100%;transition:.2s}
-.hp{background:linear-gradient(90deg,#ff5252,#ff1744)}
-.xp{background:linear-gradient(90deg,#ffd54f,#fbc02d)}
-
-/* ================= SPRITES ================= */
-.sprite{
-  width:96px;
-  height:96px;
-  margin:20px auto;
-  image-rendering:pixelated;
-  background-repeat:no-repeat;
-}
-
-/* HERO */
-.hero-idle{
-  background-image:url("assets/hero_idle.png");
-  animation:heroIdle .8s steps(6) infinite;
-}
-.hero-attack{
-  background-image:url("assets/hero_attack.png");
-  animation:heroAttack .8s steps(8) forwards;
-}
-
-/* ENEMY */
-.enemy-idle{
-  background-image:url("assets/enemy_idle.png");
-  animation:enemyIdle .8s steps(6) infinite;
-}
-.enemy-hit{
-  background-image:url("assets/enemy_hit.png");
-  animation:enemyHit .5s steps(4) forwards;
-}
-
-/* Animations */
-@keyframes heroIdle{100%{background-position:-576px}}
-@keyframes heroAttack{100%{background-position:-768px}}
-@keyframes enemyIdle{100%{background-position:-576px}}
-@keyframes enemyHit{100%{background-position:-384px}}
-
-/* Damage text */
-.float{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  font-weight:bold;
-  animation:floatUp .8s forwards;
-}
-@keyframes floatUp{
-  to{opacity:0;transform:translate(-50%,-40px)}
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ========== MENU ========== -->
+<!-- MENU -->
 <div id="menu" class="screen show">
   <h1>⚔️ TapQuest</h1>
 
@@ -117,12 +23,11 @@ button{
   </div>
 
   <button class="play" onclick="startGame()">🌲 Entrar al Bosque</button>
+  <button onclick="openInventory()">🎒 Inventario</button>
 </div>
 
-<!-- ========== GAME ========== -->
+<!-- GAME -->
 <div id="game" class="screen">
-  <h2>🌲 Bosque</h2>
-
   ❤️ Enemigo
   <div class="bar"><div id="enemyHpBar" class="fill hp"></div></div>
 
@@ -133,272 +38,13 @@ button{
   <button class="back" onclick="backMenu()">⬅️ Volver</button>
 </div>
 
-<script>
-Telegram.WebApp.ready();
-
-/* ================= DATA ================= */
-let data = JSON.parse(localStorage.getItem("tapquest")) || {
-  level:1, xp:0, coin:0
-};
-let enemyHp = 100;
-
-/* ================= UI ================= */
-function updateMenu(){
-  level.textContent = data.level;
-  xp.textContent = data.xp;
-  coin.textContent = data.coin;
-  xpBar.style.width = (data.xp)+"%";
-}
-function updateGame(){
-  enemyHpBar.style.width = enemyHp+"%";
-}
-function save(){
-  localStorage.setItem("tapquest",JSON.stringify(data));
-}
-
-/* ================= NAV ================= */
-function startGame(){
-  menu.classList.remove("show");
-  game.classList.add("show");
-  enemyHp = 100;
-  updateGame();
-}
-function backMenu(){
-  game.classList.remove("show");
-  menu.classList.add("show");
-  updateMenu();
-}
-
-/* ================= COMBAT ================= */
-function attack(){
-  const hero = document.getElementById("hero");
-  const enemy = document.getElementById("enemy");
-
-  hero.className = "sprite hero-attack";
-  enemy.className = "sprite enemy-hit";
-
-  let dmg = Math.floor(Math.random()*8)+6;
-  enemyHp -= dmg;
-
-  let f = document.createElement("div");
-  f.className = "float";
-  f.textContent = "-" + dmg;
-  enemy.appendChild(f);
-  setTimeout(()=>f.remove(),800);
-
-  if(enemyHp <= 0){
-    enemyHp = 100;
-    data.xp += 20;
-    data.coin += 5;
-
-    if(data.xp >= 100){
-      data.xp = 0;
-      data.level++;
-    }
-  }
-
-  setTimeout(()=>{
-    hero.className = "sprite hero-idle";
-    enemy.className = "sprite enemy-idle";
-    updateGame();
-    updateMenu();
-    save();
-  },600);
-}
-
-updateMenu();
-save();
-</script>
-</body>
-</html>  margin-top:10px;
-  cursor:pointer;
-}
-
-.play{background:linear-gradient(180deg,#2ecc71,#27ae60);color:#000}
-.tap{background:linear-gradient(180deg,#4aa3ff,#2d7bff)}
-.back{background:#555}
-.gold{background:linear-gradient(180deg,#ffd54f,#fbc02d);color:#000}
-
-.bar{
-  width:100%;
-  height:14px;
-  background:#222;
-  border-radius:10px;
-  overflow:hidden;
-  margin:8px 0;
-}
-.fill{height:100%;transition:width .25s linear}
-.energy{background:linear-gradient(90deg,#00ff87,#60efff)}
-.hp{background:linear-gradient(90deg,#ff5252,#ff1744)}
-
-.enemy{
-  width:180px;height:180px;
-  margin:24px auto;
-  border-radius:50%;
-  background:radial-gradient(circle,#4caf50,#1b5e20);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:44px;
-  position:relative;
-  box-shadow:0 0 30px #2aff8a;
-}
-.enemy.hit{transform:scale(.95)}
-.enemy.crit{box-shadow:0 0 60px gold}
-
-.float{
-  position:absolute;
-  font-weight:bold;
-  animation:floatUp 1s forwards;
-  pointer-events:none;
-}
-@keyframes floatUp{
-  from{opacity:1;transform:translate(-50%,0)}
-  to{opacity:0;transform:translate(-50%,-50px)}
-}
-
-.particle{
-  position:absolute;
-  width:6px;height:6px;
-  border-radius:50%;
-  background:#fff;
-  animation:particle .6s forwards;
-}
-@keyframes particle{
-  to{opacity:0;transform:translate(var(--x),var(--y))}
-}
-</style>
-</head>
-
-<body>
-
-<div id="menu" class="screen show">
-  <h1>⚔️ TapQuest</h1>
-
-  <div class="card">
-    🧬 Nivel <span id="level">1</span> |
-    ⭐ XP <span id="xp">0</span>/100<br>
-    💎 TapCoin: <span id="coin">0</span><br>
-    📜 Misión diaria: <span id="mission">0</span>/10
-  </div>
-
-  <button class="play" onclick="startGame()">🌲 Entrar al Bosque</button>
-  <button class="gold" onclick="withdraw()">💰 Retirar (Demo)</button>
+<!-- INVENTORY -->
+<div id="inventory" class="screen">
+  <h2>🎒 Inventario NFT</h2>
+  <div id="items"></div>
+  <button class="back" onclick="closeInventory()">⬅️ Volver</button>
 </div>
 
-<div id="game" class="screen">
-  <h2>🌲 Bosque</h2>
-
-  ⚡ Energía
-  <div class="bar"><div id="energyBar" class="fill energy"></div></div>
-
-  ❤️ Enemigo
-  <div class="bar"><div id="enemyHpBar" class="fill hp"></div></div>
-
-  <div id="enemy" class="enemy">🌳</div>
-
-  <button class="tap" onclick="tap()">⚔️ ATACAR</button>
-  <button class="back" onclick="backMenu()">⬅️ Volver</button>
-</div>
-
-<script>
-Telegram.WebApp.ready();
-
-const MAX_HP = 100;
-const MAX_ENERGY = 100;
-
-let data = JSON.parse(localStorage.getItem("tapquest")) || {
-  level:1,xp:0,energy:MAX_ENERGY,coin:0,mission:0
-};
-
-let enemyHp = MAX_HP;
-
-function save(){
-  localStorage.setItem("tapquest",JSON.stringify(data));
-}
-
-function updateMenu(){
-  level.textContent=data.level;
-  xp.textContent=data.xp;
-  coin.textContent=data.coin;
-  mission.textContent=data.mission;
-}
-
-function updateGame(){
-  energyBar.style.width=(data.energy/MAX_ENERGY*100)+"%";
-  enemyHpBar.style.width=(enemyHp/MAX_HP*100)+"%";
-}
-
-function startGame(){
-  menu.classList.remove("show");
-  game.classList.add("show");
-  enemyHp = MAX_HP;
-  updateGame();
-}
-
-function backMenu(){
-  game.classList.remove("show");
-  menu.classList.add("show");
-  updateMenu();
-}
-
-function particles(){
-  for(let i=0;i<6;i++){
-    let p=document.createElement("div");
-    p.className="particle";
-    p.style.left="50%";
-    p.style.top="50%";
-    p.style.setProperty("--x",(Math.random()*80-40)+"px");
-    p.style.setProperty("--y",(Math.random()*80-40)+"px");
-    enemy.appendChild(p);
-    setTimeout(()=>p.remove(),600);
-  }
-}
-
-function tap(){
-  if(data.energy<=0) return;
-
-  data.energy--;
-  let crit=Math.random()<0.2;
-  let dmg=crit?16:8;
-
-  enemyHp-=dmg;
-
-  enemy.classList.add("hit");
-  if(crit) enemy.classList.add("crit");
-  setTimeout(()=>enemy.classList.remove("hit","crit"),120);
-
-  let f=document.createElement("div");
-  f.className="float";
-  f.style.left="50%";
-  f.style.top="50%";
-  f.style.color=crit?"gold":"#fff";
-  f.textContent=(crit?"CRIT ":"-")+dmg;
-  enemy.appendChild(f);
-  setTimeout(()=>f.remove(),1000);
-
-  particles();
-
-  if(enemyHp<=0){
-    enemyHp=MAX_HP;
-    data.energy=MAX_ENERGY;
-    data.xp+=10;
-    data.coin+=5;
-    data.mission++;
-    if(data.xp>=100){data.xp=0;data.level++;}
-  }
-
-  save();
-  updateGame();
-}
-
-function withdraw(){
-  alert("Demo – Smart Contract TON próximamente");
-}
-
-updateMenu();
-updateGame();
-</script>
-
+<script src="game.js"></script>
 </body>
 </html>
