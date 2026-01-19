@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>TapQuest – Reinos de TON</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#1a2a3a,#0f2027);
+  color:white;
+  text-align:center;
+}
+h1{margin-top:20px;}
+.card{
+  background:rgba(0,0,0,.6);
+  margin:15px;
+  padding:20px;
+  border-radius:15px;
+}
+button{
+  font-size:22px;
+  padding:18px 40px;
+  border:none;
+  border-radius:20px;
+  background:#f5c542;
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚔️ TapQuest</h1>
+
+<div class="card">
+  🪙 Oro: <span id="gold">0</span><br>
+  🔋 Energía: <span id="energy">100</span>
+</div>
+
+<button onclick="tap()">⚔️ TAP</button>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+let gold = 0;
+let energy = 100;
+
+function tap(){
+  if(energy <= 0){
+    alert("Sin energía 😴");
+    return;
+  }
+  gold++;
+  energy--;
+  document.getElementById("gold").innerText = gold;
+  document.getElementById("energy").innerText = energy;
+}
+</script>
+
+</body>
+</html>
