@@ -85,9 +85,14 @@
   // ESTADO DEL JUGADOR
   let gold = 0;
   let energy = 100;
-
-  // ENEMIGO
   let enemyHP = 5;
+  let damage = 1;
+
+  // INVENTARIO
+  let inventory = {
+    swords: 0,
+    potions: 0
+  };
 
   // MISIÓN
   const mission = {
@@ -111,16 +116,49 @@
     document.getElementById("map").classList.remove("hidden");
   }
 
-  // ATAQUE
+  // INVENTARIO
+  function openInventory() {
+    document.getElementById("zone").classList.add("hidden");
+    document.getElementById("inventory").classList.remove("hidden");
+    updateInventoryUI();
+  }
+
+  function closeInventory() {
+    document.getElementById("inventory").classList.add("hidden");
+    document.getElementById("zone").classList.remove("hidden");
+  }
+
+  function useSword() {
+    if (inventory.swords <= 0) return alert("No tienes espadas");
+    inventory.swords--;
+    damage += 1;
+    alert("🗡️ Daño aumentado");
+    updateInventoryUI();
+  }
+
+  function usePotion() {
+    if (inventory.potions <= 0) return alert("No tienes pociones");
+    inventory.potions--;
+    energy = Math.min(energy + 20, 100);
+    alert("🧪 Energía recuperada");
+    updateUI();
+    updateInventoryUI();
+  }
+
+  // COMBATE
   function tap() {
     if (energy <= 0) return;
 
     energy--;
-    enemyHP--;
+    enemyHP -= damage;
 
     if (enemyHP <= 0) {
       enemyHP = 5;
       gold += 2;
+
+      // drop aleatorio
+      if (Math.random() < 0.3) inventory.potions++;
+      if (Math.random() < 0.2) inventory.swords++;
 
       if (!mission.completed) {
         mission.progress++;
@@ -131,12 +169,11 @@
     updateUI();
   }
 
-  // VERIFICAR MISIÓN
   function checkMission() {
     if (mission.progress >= mission.goal) {
       mission.completed = true;
       gold += mission.reward;
-      alert("🎉 Misión completada! +" + mission.reward + " oro");
+      alert("🎉 Misión completada +" + mission.reward + " oro");
     }
   }
 
@@ -153,6 +190,11 @@
 
     document.getElementById("missionProgress").innerText =
       "Progreso: " + mission.progress + " / " + mission.goal;
+  }
+
+  function updateInventoryUI() {
+    document.getElementById("swords").innerText = inventory.swords;
+    document.getElementById("potions").innerText = inventory.potions;
   }
 
   // ENERGÍA IDLE
