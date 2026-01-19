@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>TapQuest – Reinos de TON</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -18,7 +17,7 @@
     h1 { margin: 20px 0; }
     .card {
       background: rgba(0,0,0,.65);
-      margin: 20px;
+      margin: 15px;
       padding: 20px;
       border-radius: 16px;
     }
@@ -26,12 +25,16 @@
       width: 90%;
       max-width: 320px;
       padding: 15px;
-      margin: 10px auto;
+      margin: 8px auto;
       display: block;
       font-size: 18px;
       border-radius: 16px;
       border: none;
       cursor: pointer;
+    }
+    button:disabled {
+      background: #555;
+      color: #aaa;
     }
     .tap {
       background: gold;
@@ -39,13 +42,8 @@
       font-size: 22px;
       font-weight: bold;
     }
-    .back {
-      background: #444;
-      color: white;
-    }
-    .hidden {
-      display: none;
-    }
+    .back { background: #444; color: white; }
+    .hidden { display: none; }
   </style>
 </head>
 
@@ -53,20 +51,35 @@
 
 <h1>⚔️ TapQuest</h1>
 
+<!-- MAPA -->
 <div class="card" id="map">
   <h2>🗺️ Mapa del Mundo</h2>
-  <button onclick="enterZone()">🌲 Bosque Inicial</button>
+  <p>🧬 Nivel: <span id="level">1</span> | ⭐ XP: <span id="xp">0</span></p>
+
+  <button onclick="enterZone(1)">🌲 Bosque Inicial</button>
+  <button id="zone2" onclick="enterZone(2)" disabled>🏜️ Desierto (Nivel 3)</button>
+  <button id="zone3" onclick="enterZone(3)" disabled>🏔️ Montañas (Nivel 5)</button>
 </div>
 
+<!-- ZONA -->
 <div class="card hidden" id="zone">
-  <h2>🌲 Bosque Inicial</h2>
+  <h2 id="zoneName"></h2>
+
   <p>🪙 Oro: <span id="gold">0</span></p>
   <p>🔋 Energía: <span id="energy">100</span></p>
-  <p>👹 Enemigo HP: <span id="enemy">10</span></p>
+  <p>⭐ XP: <span id="xpZone">0</span></p>
+
+  <p>👹 Enemigo HP: <span id="enemy">0</span></p>
+
+  <p id="missionText"></p>
+  <p id="missionProgress"></p>
 
   <button class="tap" onclick="tap()">⚔️ ATACAR</button>
   <button onclick="openInventory()">🎒 Inventario</button>
+  <button class="back" onclick="back()">⬅️ Volver</button>
+</div>
 
+<!-- INVENTARIO -->
 <div class="card hidden" id="inventory">
   <h2>🎒 Inventario</h2>
 
@@ -78,132 +91,134 @@
 
   <button class="back" onclick="closeInventory()">⬅️ Volver</button>
 </div>
-  <button class="back" onclick="back()">⬅️ Volver</button>
-</div>
 
 <script>
-  // ESTADO DEL JUGADOR
-  let gold = 0;
-  let energy = 100;
-  let enemyHP = 5;
-  let damage = 1;
+/* ===== ESTADO ===== */
+let gold = 0;
+let energy = 100;
+let level = 1;
+let xp = 0;
+let damage = 1;
 
-  // INVENTARIO
-  let inventory = {
-    swords: 0,
-    potions: 0
-  };
+/* INVENTARIO */
+let inventory = { swords: 0, potions: 0 };
 
-  // MISIÓN
-  const mission = {
-    title: "🧙‍♂️ El anciano del Bosque",
-    description: "Derrota 3 bestias corruptas",
-    goal: 3,
-    progress: 0,
-    reward: 10,
-    completed: false
-  };
+/* ZONAS */
+const zones = {
+  1: { name: "🌲 Bosque Inicial", hp: 5, xp: 5, gold: 2 },
+  2: { name: "🏜️ Desierto Antiguo", hp: 10, xp: 10, gold: 4 },
+  3: { name: "🏔️ Montañas Heladas", hp: 20, xp: 20, gold: 8 }
+};
 
-  // ENTRAR A ZONA
-  function enterZone() {
-    document.getElementById("map").classList.add("hidden");
-    document.getElementById("zone").classList.remove("hidden");
+let currentZone = 1;
+let enemyHP = zones[1].hp;
+
+/* MISIÓN */
+let mission = {
+  goal: 3,
+  progress: 0,
+  completed: false
+};
+
+/* ===== MAPA ===== */
+function enterZone(z) {
+  currentZone = z;
+  enemyHP = zones[z].hp;
+
+  document.getElementById("map").classList.add("hidden");
+  document.getElementById("zone").classList.remove("hidden");
+
+  document.getElementById("zoneName").innerText = zones[z].name;
+  updateUI();
+}
+
+function back() {
+  document.getElementById("zone").classList.add("hidden");
+  document.getElementById("map").classList.remove("hidden");
+}
+
+/* ===== COMBATE ===== */
+function tap() {
+  if (energy <= 0) return;
+
+  energy--;
+  enemyHP -= damage;
+
+  if (enemyHP <= 0) {
+    enemyHP = zones[currentZone].hp;
+    gold += zones[currentZone].gold;
+    xp += zones[currentZone].xp;
+    mission.progress++;
+
+    if (Math.random() < 0.3) inventory.potions++;
+    if (Math.random() < 0.2) inventory.swords++;
+
+    checkLevelUp();
+  }
+
+  updateUI();
+}
+
+/* ===== NIVEL ===== */
+function checkLevelUp() {
+  let need = level * 30;
+  if (xp >= need) {
+    xp -= need;
+    level++;
+    alert("🧬 Subiste a nivel " + level);
+
+    if (level >= 3) document.getElementById("zone2").disabled = false;
+    if (level >= 5) document.getElementById("zone3").disabled = false;
+  }
+}
+
+/* ===== INVENTARIO ===== */
+function openInventory() {
+  document.getElementById("zone").classList.add("hidden");
+  document.getElementById("inventory").classList.remove("hidden");
+  updateInventory();
+}
+function closeInventory() {
+  document.getElementById("inventory").classList.add("hidden");
+  document.getElementById("zone").classList.remove("hidden");
+}
+function useSword() {
+  if (inventory.swords <= 0) return;
+  inventory.swords--;
+  damage++;
+  alert("🗡️ Daño aumentado");
+  updateInventory();
+}
+function usePotion() {
+  if (inventory.potions <= 0) return;
+  inventory.potions--;
+  energy = Math.min(energy + 30, 100);
+  updateUI();
+  updateInventory();
+}
+
+/* ===== UI ===== */
+function updateUI() {
+  document.getElementById("gold").innerText = gold;
+  document.getElementById("energy").innerText = energy;
+  document.getElementById("enemy").innerText = enemyHP;
+  document.getElementById("xp").innerText = xp;
+  document.getElementById("xpZone").innerText = xp;
+  document.getElementById("level").innerText = level;
+}
+function updateInventory() {
+  document.getElementById("swords").innerText = inventory.swords;
+  document.getElementById("potions").innerText = inventory.potions;
+}
+
+/* ===== IDLE ===== */
+setInterval(() => {
+  if (energy < 100) {
+    energy++;
     updateUI();
   }
-
-  function back() {
-    document.getElementById("zone").classList.add("hidden");
-    document.getElementById("map").classList.remove("hidden");
-  }
-
-  // INVENTARIO
-  function openInventory() {
-    document.getElementById("zone").classList.add("hidden");
-    document.getElementById("inventory").classList.remove("hidden");
-    updateInventoryUI();
-  }
-
-  function closeInventory() {
-    document.getElementById("inventory").classList.add("hidden");
-    document.getElementById("zone").classList.remove("hidden");
-  }
-
-  function useSword() {
-    if (inventory.swords <= 0) return alert("No tienes espadas");
-    inventory.swords--;
-    damage += 1;
-    alert("🗡️ Daño aumentado");
-    updateInventoryUI();
-  }
-
-  function usePotion() {
-    if (inventory.potions <= 0) return alert("No tienes pociones");
-    inventory.potions--;
-    energy = Math.min(energy + 20, 100);
-    alert("🧪 Energía recuperada");
-    updateUI();
-    updateInventoryUI();
-  }
-
-  // COMBATE
-  function tap() {
-    if (energy <= 0) return;
-
-    energy--;
-    enemyHP -= damage;
-
-    if (enemyHP <= 0) {
-      enemyHP = 5;
-      gold += 2;
-
-      // drop aleatorio
-      if (Math.random() < 0.3) inventory.potions++;
-      if (Math.random() < 0.2) inventory.swords++;
-
-      if (!mission.completed) {
-        mission.progress++;
-        checkMission();
-      }
-    }
-
-    updateUI();
-  }
-
-  function checkMission() {
-    if (mission.progress >= mission.goal) {
-      mission.completed = true;
-      gold += mission.reward;
-      alert("🎉 Misión completada +" + mission.reward + " oro");
-    }
-  }
-
-  // UI
-  function updateUI() {
-    document.getElementById("gold").innerText = gold;
-    document.getElementById("energy").innerText = energy;
-    document.getElementById("enemy").innerText = enemyHP;
-
-    document.getElementById("missionText").innerText =
-      mission.completed
-        ? "✅ Misión completada"
-        : mission.title + ": " + mission.description;
-
-    document.getElementById("missionProgress").innerText =
-      "Progreso: " + mission.progress + " / " + mission.goal;
-  }
-
-  function updateInventoryUI() {
-    document.getElementById("swords").innerText = inventory.swords;
-    document.getElementById("potions").innerText = inventory.potions;
-  }
-
-  // ENERGÍA IDLE
-  setInterval(() => {
-    if (energy < 100) {
-      energy++;
-      updateUI();
-    }
-  }, 5000);
+}, 5000);
 </script>
+
 </body>
 </html>
