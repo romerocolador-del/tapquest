@@ -69,14 +69,28 @@
 </div>
 
 <script>
-
+  // ESTADO DEL JUGADOR
   let gold = 0;
   let energy = 100;
-  let enemy = 10;
 
+  // ENEMIGO
+  let enemyHP = 5;
+
+  // MISIÓN
+  const mission = {
+    title: "🧙‍♂️ El anciano del Bosque",
+    description: "Derrota 3 bestias corruptas",
+    goal: 3,
+    progress: 0,
+    reward: 10,
+    completed: false
+  };
+
+  // ENTRAR A ZONA
   function enterZone() {
     document.getElementById("map").classList.add("hidden");
     document.getElementById("zone").classList.remove("hidden");
+    updateUI();
   }
 
   function back() {
@@ -84,38 +98,57 @@
     document.getElementById("map").classList.remove("hidden");
   }
 
+  // ATAQUE
   function tap() {
-    if (energy <= 0) {
-      alert("Sin energía");
-      return;
-    }
+    if (energy <= 0) return;
 
     energy--;
-    enemy--;
+    enemyHP--;
 
-    if (enemy <= 0) {
-      enemy = 10;
+    if (enemyHP <= 0) {
+      enemyHP = 5;
       gold += 2;
-      alert("👹 Enemigo derrotado +2 oro");
+
+      if (!mission.completed) {
+        mission.progress++;
+        checkMission();
+      }
     }
 
-    document.getElementById("gold").innerText = gold;
-    document.getElementById("energy").innerText = energy;
-    document.getElementById("enemy").innerText = enemy;
+    updateUI();
   }
 
+  // VERIFICAR MISIÓN
+  function checkMission() {
+    if (mission.progress >= mission.goal) {
+      mission.completed = true;
+      gold += mission.reward;
+      alert("🎉 Misión completada! +" + mission.reward + " oro");
+    }
+  }
+
+  // UI
+  function updateUI() {
+    document.getElementById("gold").innerText = gold;
+    document.getElementById("energy").innerText = energy;
+    document.getElementById("enemy").innerText = enemyHP;
+
+    document.getElementById("missionText").innerText =
+      mission.completed
+        ? "✅ Misión completada"
+        : mission.title + ": " + mission.description;
+
+    document.getElementById("missionProgress").innerText =
+      "Progreso: " + mission.progress + " / " + mission.goal;
+  }
+
+  // ENERGÍA IDLE
   setInterval(() => {
     if (energy < 100) {
       energy++;
-      document.getElementById("energy").innerText = energy;
+      updateUI();
     }
   }, 5000);
 </script>
-
-</body>
-</html>  <button class="back" onclick="back()">⬅️ Volver al mapa</button>
-</div>
-
-<script src="game.js"></script>
 </body>
 </html>
