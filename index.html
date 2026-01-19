@@ -4,37 +4,245 @@
 <meta charset="UTF-8">
 <title>TapQuest – Reinos de TON</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- TELEGRAM -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+<!-- TON CONNECT -->
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
 <style>
-body {
+body{
   margin:0;
   font-family:'Trebuchet MS',sans-serif;
   background:radial-gradient(circle at top,#1e3c72,#2a5298);
   color:#fff;
   text-align:center;
 }
-h1 {
-  margin:15px 0;
-  font-size:32px;
-  text-shadow:0 3px 10px #000;
-}
-.card {
+h1{margin:15px 0;font-size:32px;text-shadow:0 3px 10px #000;}
+.card{
   background:linear-gradient(180deg,#141e30,#243b55);
   margin:16px;
   padding:20px;
   border-radius:22px;
   box-shadow:0 10px 25px rgba(0,0,0,.6);
-  animation:fadeIn .4s ease;
 }
-button {
+button{
   width:92%;
   max-width:340px;
   padding:16px;
   margin:10px auto;
-  display:block;
   font-size:18px;
   border-radius:18px;
+  border:none;
+  cursor:pointer;
+  background:linear-gradient(180deg,#f5af19,#f12711);
+  color:#000;
+  font-weight:bold;
+}
+button:active{transform:scale(.95)}
+button:disabled{background:#555;color:#aaa}
+.tap{font-size:24px;background:linear-gradient(180deg,#00f260,#0575e6);color:#fff}
+.back{background:linear-gradient(180deg,#434343,#000);color:#fff}
+.hidden{display:none}
+
+.bar{width:100%;height:16px;background:#222;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.fill{height:100%;transition:width .3s}
+.energy{background:linear-gradient(90deg,#00ff87,#60efff)}
+.xp{background:linear-gradient(90deg,#ff512f,#dd2476)}
+.hit{animation:hit .15s}
+@keyframes hit{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-4px)}
+  50%{transform:translateX(4px)}
+  100%{transform:translateX(0)}
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚔️ TapQuest</h1>
+
+<!-- MAPA -->
+<div class="card" id="map">
+  <h2>🗺️ Mapa del Mundo</h2>
+
+  <button onclick="connectWallet()">🔗 Conectar Wallet TON</button>
+  <p id="walletAddress">Wallet: no conectada</p>
+
+  <p>🧬 Nivel: <span id="level">1</span></p>
+  <p>⭐ XP: <span id="xp">0</span></p>
+
+  <button onclick="enterZone(1)">🌲 Bosque Inicial</button>
+  <button id="zone2" onclick="enterZone(2)" disabled>🏜️ Desierto (Nivel 3)</button>
+  <button id="zone3" onclick="enterZone(3)" disabled>🏔️ Montañas (Nivel 5)</button>
+</div>
+
+<!-- ZONA -->
+<div class="card hidden" id="zone">
+  <h2 id="zoneName"></h2>
+
+  <p>🪙 Oro: <span id="gold">0</span></p>
+  <p>💎 TapCoin: <span id="tapcoin">0</span></p>
+
+  <p>🔋 Energía</p>
+  <div class="bar"><div id="energyBar" class="fill energy"></div></div>
+
+  <p>⭐ XP</p>
+  <div class="bar"><div id="xpBar" class="fill xp"></div></div>
+
+  <p>👹 Enemigo HP: <span id="enemy">0</span></p>
+
+  <button class="tap" onclick="tap()">⚔️ ATACAR</button>
+  <button onclick="openInventory()">🎒 Inventario</button>
+  <button onclick="requestWithdraw()">💸 Solicitar Retiro</button>
+  <button class="back" onclick="back()">⬅️ Volver</button>
+</div>
+
+<!-- INVENTARIO -->
+<div class="card hidden" id="inventory">
+  <h2>🎒 Inventario</h2>
+  <p>🗡️ Espadas: <span id="swords">0</span></p>
+  <button onclick="useSword()">Usar espada</button>
+  <p>🧪 Pociones: <span id="potions">0</span></p>
+  <button onclick="usePotion()">Usar poción</button>
+  <button class="back" onclick="closeInventory()">⬅️ Volver</button>
+</div>
+
+<!-- SONIDOS -->
+<audio id="sndHit" src="https://actions.google.com/sounds/v1/impacts/wood_plank_flicks.ogg"></audio>
+<audio id="sndLevel" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="sndItem" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+
+<script>
+// ===== TON CONNECT =====
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl:'https://raw.githubusercontent.com/ton-connect/demo-dapp/main/public/tonconnect-manifest.json'
+});
+async function connectWallet(){
+  const w = await tonConnectUI.connectWallet();
+  document.getElementById("walletAddress").innerText =
+    "Wallet: " + w.account.address.slice(0,6)+"..."+w.account.address.slice(-4);
+}
+
+// ===== UTIL =====
+function playSound(id){const s=document.getElementById(id);if(s){s.currentTime=0;s.play()}}
+function vibrate(ms=30){
+  if(window.Telegram && Telegram.WebApp.HapticFeedback){
+    Telegram.WebApp.HapticFeedback.impactOccurred("light");
+  } else if(navigator.vibrate){navigator.vibrate(ms)}
+}
+
+// ===== ESTADO =====
+let gold=0, tapCoin=0, energy=100, level=1, xp=0, damage=1;
+let inventory={swords:0,potions:0};
+
+const zones={
+  1:{name:"🌲 Bosque Inicial",hp:5,xp:5,gold:2},
+  2:{name:"🏜️ Desierto Antiguo",hp:10,xp:10,gold:4},
+  3:{name:"🏔️ Montañas Heladas",hp:20,xp:20,gold:8}
+};
+let currentZone=1, enemyHP=zones[1].hp;
+
+// ===== MAPA =====
+function enterZone(z){
+  currentZone=z; enemyHP=zones[z].hp;
+  document.getElementById("map").classList.add("hidden");
+  document.getElementById("zone").classList.remove("hidden");
+  document.getElementById("zoneName").innerText=zones[z].name;
+  updateUI();
+}
+function back(){
+  document.getElementById("zone").classList.add("hidden");
+  document.getElementById("map").classList.remove("hidden");
+}
+
+// ===== COMBATE =====
+function tap(){
+  if(energy<=0)return;
+  playSound("sndHit"); vibrate(20);
+  energy--; enemyHP-=damage;
+  if(enemyHP<=0){
+    enemyHP=zones[currentZone].hp;
+    gold+=zones[currentZone].gold;
+    xp+=zones[currentZone].xp;
+    tapCoin+=1;
+    if(Math.random()<0.3)inventory.potions++;
+    if(Math.random()<0.2)inventory.swords++;
+    checkLevelUp();
+  }
+  updateUI();
+}
+
+// ===== NIVEL =====
+function checkLevelUp(){
+  let need=level*30;
+  if(xp>=need){
+    xp-=need; level++;
+    playSound("sndLevel"); vibrate(60);
+    alert("🧬 Subiste a nivel "+level);
+    if(level>=3)zone2.disabled=false;
+    if(level>=5)zone3.disabled=false;
+  }
+}
+
+// ===== INVENTARIO =====
+function openInventory(){
+  zone.classList.add("hidden");
+  inventoryDiv.classList.remove("hidden");
+  updateInventory();
+}
+function closeInventory(){
+  inventoryDiv.classList.add("hidden");
+  zone.classList.remove("hidden");
+}
+function useSword(){
+  if(inventory.swords<=0)return;
+  playSound("sndItem"); vibrate(40);
+  inventory.swords--; damage++;
+  updateInventory();
+}
+function usePotion(){
+  if(inventory.potions<=0)return;
+  playSound("sndItem"); vibrate(40);
+  inventory.potions--; energy=Math.min(energy+30,100);
+  updateUI(); updateInventory();
+}
+
+// ===== RETIRO =====
+function requestWithdraw(){
+  if(!tonConnectUI.wallet)return alert("Conecta tu wallet");
+  alert("Solicitud enviada\nTapCoin: "+tapCoin);
+}
+
+// ===== UI =====
+const zone=document.getElementById("zone");
+const inventoryDiv=document.getElementById("inventory");
+
+function updateUI(){
+  gold.innerText=gold;
+  tapcoin.innerText=tapCoin;
+  enemy.innerText=enemyHP;
+  levelSpan.innerText=level;
+  xpSpan.innerText=xp;
+  energyBar.style.width=energy+"%";
+  xpBar.style.width=Math.min((xp/(level*30))*100,100)+"%";
+}
+function updateInventory(){
+  swords.innerText=inventory.swords;
+  potions.innerText=inventory.potions;
+}
+
+// ===== IDLE =====
+setInterval(()=>{if(energy<100){energy++;updateUI()}},5000);
+
+// ===== TELEGRAM =====
+if(window.Telegram){Telegram.WebApp.ready();Telegram.WebApp.expand()}
+</script>
+
+</body>
+</html>  border-radius:18px;
   border:none;
   cursor:pointer;
   background:linear-gradient(180deg,#f5af19,#f12711);
