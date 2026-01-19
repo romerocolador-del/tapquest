@@ -19,27 +19,21 @@
   <h2>🗺️ Mapa del Mundo</h2>
 
   <button onclick="enterZone(1)">🌲 Bosque Inicial</button>
-  <button onclick="enterZone(2)" disabled>🏜️ Desierto (Bloqueado)</button>
-  <button onclick="enterZone(3)" disabled>🏔️ Montañas (Bloqueado)</button>
+  <button disabled>🏜️ Desierto (Bloqueado)</button>
+  <button disabled>🏔️ Montañas (Bloqueado)</button>
 </div>
 
-<!-- ZONA DE AVENTURA -->
+<!-- ZONA DE COMBATE -->
 <div class="card hidden" id="zone">
   <h2 id="zoneName"></h2>
 
   <p>🪙 Oro: <span id="gold">0</span></p>
   <p>🔋 Energía: <span id="energy">100</span></p>
 
+  <p>👹 Enemigo HP: <span id="enemyHP">0 / 0</span></p>
+  <p id="mission">🗡 Derrota 5 enemigos (0/5)</p>
+
   <button class="tap" onclick="tap()">⚔️ ATACAR</button>
-
-  <button class="back" onclick="back()">⬅️ Volver al mapa</button>
-</div>
-
-<script src="game.js"></script>
-</body>
-</html><script src="game.js"></script>
-</body>
-</html>
   <button class="back" onclick="back()">⬅️ Volver al mapa</button>
 </div>
 
