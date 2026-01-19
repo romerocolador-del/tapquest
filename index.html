@@ -5,10 +5,7 @@
 <title>TapQuest – Reinos de TON</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- TELEGRAM -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<!-- TON CONNECT -->
 <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
 <style>
@@ -18,6 +15,7 @@ body{
   background:radial-gradient(circle at top,#1e3c72,#2a5298);
   color:#fff;
   text-align:center;
+  overflow-x:hidden;
 }
 h1{margin:15px 0;font-size:32px;text-shadow:0 3px 10px #000;}
 .card{
@@ -35,6 +33,202 @@ button{
   font-size:18px;
   border-radius:18px;
   border:none;
+  cursor:pointer;
+  background:linear-gradient(180deg,#f5af19,#f12711);
+  color:#000;
+  font-weight:bold;
+}
+button:active{transform:scale(.96)}
+.tap{font-size:24px;background:linear-gradient(180deg,#00f260,#0575e6);color:#fff}
+.back{background:linear-gradient(180deg,#434343,#000);color:#fff}
+.hidden{display:none}
+
+.bar{width:100%;height:16px;background:#222;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.fill{height:100%;transition:width .25s}
+.energy{background:linear-gradient(90deg,#00ff87,#60efff)}
+.xp{background:linear-gradient(90deg,#ff512f,#dd2476)}
+
+/* ==== EFECTO SUAVE ==== */
+.hit{
+  animation:softHit .18s ease-out;
+}
+@keyframes softHit{
+  0%{transform:scale(1);box-shadow:0 0 0 rgba(255,255,255,0)}
+  40%{transform:scale(1.02);box-shadow:0 0 20px rgba(255,255,255,.35)}
+  100%{transform:scale(1);box-shadow:0 0 0 rgba(255,255,255,0)}
+}
+
+/* ==== CRÍTICO ==== */
+.crit{
+  box-shadow:0 0 30px rgba(255,215,0,.9)!important;
+}
+
+/* ==== PARTÍCULAS ==== */
+.particle{
+  position:absolute;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  pointer-events:none;
+  animation:particle .6s ease-out forwards;
+}
+@keyframes particle{
+  from{opacity:1;transform:translate(0,0) scale(1)}
+  to{opacity:0;transform:translate(var(--x),var(--y)) scale(.2)}
+}
+
+/* ==== DAÑO FLOTANTE ==== */
+.damage{
+  position:absolute;
+  font-weight:bold;
+  animation:float .8s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes float{
+  from{opacity:1;transform:translateY(0)}
+  to{opacity:0;transform:translateY(-40px)}
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚔️ TapQuest</h1>
+
+<div class="card" id="map">
+  <button onclick="connectWallet()">🔗 Conectar Wallet TON</button>
+  <p id="walletAddress">Wallet: no conectada</p>
+  <p>🧬 Nivel: <span id="level">1</span> | ⭐ XP: <span id="xp">0</span></p>
+  <button onclick="enterZone(1)">🌲 Bosque</button>
+</div>
+
+<div class="card hidden" id="zone">
+  <h2 id="zoneName"></h2>
+  <p>🪙 Oro: <span id="gold">0</span> | 💎 TapCoin: <span id="tapcoin">0</span></p>
+
+  <div class="bar"><div id="energyBar" class="fill energy"></div></div>
+  <div class="bar"><div id="xpBar" class="fill xp"></div></div>
+
+  <p>👹 HP: <span id="enemy">0</span></p>
+
+  <button class="tap" onclick="tap()">⚔️ ATACAR</button>
+  <button class="back" onclick="back()">⬅️ Volver</button>
+</div>
+
+<audio id="sndHit" src="https://actions.google.com/sounds/v1/impacts/wood_plank_flicks.ogg"></audio>
+<audio id="sndCrit" src="https://actions.google.com/sounds/v1/cartoon/metal_twang.ogg"></audio>
+
+<script>
+/* ==== TON ==== */
+const tonConnectUI=new TON_CONNECT_UI.TonConnectUI({
+ manifestUrl:'https://raw.githubusercontent.com/ton-connect/demo-dapp/main/public/tonconnect-manifest.json'
+});
+async function connectWallet(){
+ const w=await tonConnectUI.connectWallet();
+ walletAddress.innerText="Wallet: "+w.account.address.slice(0,6)+"..."+w.account.address.slice(-4);
+}
+
+/* ==== UTIL ==== */
+function play(id){const s=document.getElementById(id);if(s){s.currentTime=0;s.play()}}
+function vibratePower(dmg){
+ let ms=Math.min(20+dmg*10,120);
+ if(Telegram?.WebApp?.HapticFeedback)
+  Telegram.WebApp.HapticFeedback.impactOccurred(dmg>3?"heavy":"light");
+ else navigator.vibrate(ms);
+}
+
+/* ==== ESTADO ==== */
+let gold=0,tapCoin=0,energy=100,level=1,xp=0,damage=1;
+let enemyHP=5;
+
+/* ==== MAPA ==== */
+function enterZone(){
+ map.classList.add("hidden");
+ zone.classList.remove("hidden");
+ zoneName.innerText="🌲 Bosque Inicial";
+ enemyHP=5;
+ updateUI();
+}
+function back(){
+ zone.classList.add("hidden");
+ map.classList.remove("hidden");
+}
+
+/* ==== COMBATE PREMIUM ==== */
+function tap(){
+ if(energy<=0)return;
+ energy--;
+
+ let crit=Math.random()<0.2;
+ let dmg=crit?damage*2:damage;
+
+ enemyHP-=dmg;
+ tapCoin++;
+
+ play(crit?"sndCrit":"sndHit");
+ vibratePower(dmg);
+
+ softHit(crit);
+ spawnParticles(crit);
+ showDamage(dmg,crit);
+
+ if(enemyHP<=0){
+  enemyHP=5;
+  gold+=2;
+  xp+=5;
+ }
+ updateUI();
+}
+
+/* ==== EFECTOS ==== */
+function softHit(crit){
+ zone.classList.remove("hit","crit");
+ void zone.offsetWidth;
+ zone.classList.add("hit");
+ if(crit)zone.classList.add("crit");
+}
+function spawnParticles(crit){
+ for(let i=0;i<8;i++){
+  let p=document.createElement("div");
+  p.className="particle";
+  p.style.background=crit?"gold":"white";
+  p.style.left=window.innerWidth/2+"px";
+  p.style.top="50%";
+  p.style.setProperty("--x",(Math.random()*80-40)+"px");
+  p.style.setProperty("--y",(Math.random()*-80)+"px");
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),600);
+ }
+}
+function showDamage(val,crit){
+ let d=document.createElement("div");
+ d.className="damage";
+ d.style.color=crit?"gold":"white";
+ d.style.left=window.innerWidth/2+"px";
+ d.style.top="45%";
+ d.innerText=crit?"CRIT "+val:val;
+ document.body.appendChild(d);
+ setTimeout(()=>d.remove(),800);
+}
+
+/* ==== UI ==== */
+function updateUI(){
+ gold.innerText=gold;
+ tapcoin.innerText=tapCoin;
+ enemy.innerText=enemyHP;
+ energyBar.style.width=energy+"%";
+ xpBar.style.width=Math.min((xp/30)*100,100)+"%";
+}
+
+/* ==== IDLE ==== */
+setInterval(()=>{if(energy<100){energy++;updateUI()}},5000);
+
+/* ==== TELEGRAM ==== */
+if(window.Telegram){Telegram.WebApp.ready();Telegram.WebApp.expand()}
+</script>
+
+</body>
+</html>  border:none;
   cursor:pointer;
   background:linear-gradient(180deg,#f5af19,#f12711);
   color:#000;
