@@ -103,3 +103,9 @@ button{
 .rare{border-left:4px solid #4aa3ff}
 .epic{border-left:4px solid #b388ff}
 .legendary{border-left:4px solid gold}
+
+/* BOSS */
+.boss{
+  filter: drop-shadow(0 0 18px red);
+  transform: scale(1.15);
+}
