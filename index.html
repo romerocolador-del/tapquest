@@ -17,9 +17,7 @@ body{
   text-align:center;
 }
 .screen{display:none;padding:16px}
-.show{display:block}
-
-h1,h2{margin:10px 0}
+.screen.show{display:block}
 
 .card{
   background:#0f2a52;
@@ -35,6 +33,199 @@ button{
   border:none;
   border-radius:16px;
   font-size:16px;
+  font-weight:bold;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+.play{background:linear-gradient(180deg,#2ecc71,#27ae60);color:#000}
+.tap{background:linear-gradient(180deg,#4aa3ff,#2d7bff)}
+.back{background:#555}
+.gold{background:linear-gradient(180deg,#ffd54f,#fbc02d);color:#000}
+
+.bar{
+  width:100%;
+  height:14px;
+  background:#222;
+  border-radius:10px;
+  overflow:hidden;
+  margin:8px 0;
+}
+.fill{height:100%;transition:width .25s linear}
+.energy{background:linear-gradient(90deg,#00ff87,#60efff)}
+.hp{background:linear-gradient(90deg,#ff5252,#ff1744)}
+
+.enemy{
+  width:180px;height:180px;
+  margin:24px auto;
+  border-radius:50%;
+  background:radial-gradient(circle,#4caf50,#1b5e20);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:44px;
+  position:relative;
+  box-shadow:0 0 30px #2aff8a;
+}
+.enemy.hit{transform:scale(.95)}
+.enemy.crit{box-shadow:0 0 60px gold}
+
+.float{
+  position:absolute;
+  font-weight:bold;
+  animation:floatUp 1s forwards;
+  pointer-events:none;
+}
+@keyframes floatUp{
+  from{opacity:1;transform:translate(-50%,0)}
+  to{opacity:0;transform:translate(-50%,-50px)}
+}
+
+.particle{
+  position:absolute;
+  width:6px;height:6px;
+  border-radius:50%;
+  background:#fff;
+  animation:particle .6s forwards;
+}
+@keyframes particle{
+  to{opacity:0;transform:translate(var(--x),var(--y))}
+}
+</style>
+</head>
+
+<body>
+
+<div id="menu" class="screen show">
+  <h1>⚔️ TapQuest</h1>
+
+  <div class="card">
+    🧬 Nivel <span id="level">1</span> |
+    ⭐ XP <span id="xp">0</span>/100<br>
+    💎 TapCoin: <span id="coin">0</span><br>
+    📜 Misión diaria: <span id="mission">0</span>/10
+  </div>
+
+  <button class="play" onclick="startGame()">🌲 Entrar al Bosque</button>
+  <button class="gold" onclick="withdraw()">💰 Retirar (Demo)</button>
+</div>
+
+<div id="game" class="screen">
+  <h2>🌲 Bosque</h2>
+
+  ⚡ Energía
+  <div class="bar"><div id="energyBar" class="fill energy"></div></div>
+
+  ❤️ Enemigo
+  <div class="bar"><div id="enemyHpBar" class="fill hp"></div></div>
+
+  <div id="enemy" class="enemy">🌳</div>
+
+  <button class="tap" onclick="tap()">⚔️ ATACAR</button>
+  <button class="back" onclick="backMenu()">⬅️ Volver</button>
+</div>
+
+<script>
+Telegram.WebApp.ready();
+
+const MAX_HP = 100;
+const MAX_ENERGY = 100;
+
+let data = JSON.parse(localStorage.getItem("tapquest")) || {
+  level:1,xp:0,energy:MAX_ENERGY,coin:0,mission:0
+};
+
+let enemyHp = MAX_HP;
+
+function save(){
+  localStorage.setItem("tapquest",JSON.stringify(data));
+}
+
+function updateMenu(){
+  level.textContent=data.level;
+  xp.textContent=data.xp;
+  coin.textContent=data.coin;
+  mission.textContent=data.mission;
+}
+
+function updateGame(){
+  energyBar.style.width=(data.energy/MAX_ENERGY*100)+"%";
+  enemyHpBar.style.width=(enemyHp/MAX_HP*100)+"%";
+}
+
+function startGame(){
+  menu.classList.remove("show");
+  game.classList.add("show");
+  enemyHp = MAX_HP;
+  updateGame();
+}
+
+function backMenu(){
+  game.classList.remove("show");
+  menu.classList.add("show");
+  updateMenu();
+}
+
+function particles(){
+  for(let i=0;i<6;i++){
+    let p=document.createElement("div");
+    p.className="particle";
+    p.style.left="50%";
+    p.style.top="50%";
+    p.style.setProperty("--x",(Math.random()*80-40)+"px");
+    p.style.setProperty("--y",(Math.random()*80-40)+"px");
+    enemy.appendChild(p);
+    setTimeout(()=>p.remove(),600);
+  }
+}
+
+function tap(){
+  if(data.energy<=0) return;
+
+  data.energy--;
+  let crit=Math.random()<0.2;
+  let dmg=crit?16:8;
+
+  enemyHp-=dmg;
+
+  enemy.classList.add("hit");
+  if(crit) enemy.classList.add("crit");
+  setTimeout(()=>enemy.classList.remove("hit","crit"),120);
+
+  let f=document.createElement("div");
+  f.className="float";
+  f.style.left="50%";
+  f.style.top="50%";
+  f.style.color=crit?"gold":"#fff";
+  f.textContent=(crit?"CRIT ":"-")+dmg;
+  enemy.appendChild(f);
+  setTimeout(()=>f.remove(),1000);
+
+  particles();
+
+  if(enemyHp<=0){
+    enemyHp=MAX_HP;
+    data.energy=MAX_ENERGY;
+    data.xp+=10;
+    data.coin+=5;
+    data.mission++;
+    if(data.xp>=100){data.xp=0;data.level++;}
+  }
+
+  save();
+  updateGame();
+}
+
+function withdraw(){
+  alert("Demo – Smart Contract TON próximamente");
+}
+
+updateMenu();
+updateGame();
+</script>
+
+</body>
+</html>  font-size:16px;
   font-weight:bold;
   margin-top:10px;
   cursor:pointer;
