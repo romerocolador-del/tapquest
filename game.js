@@ -254,7 +254,7 @@ setInterval(()=>{
 updateMenu();
 
 let tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: "https://TU_USUARIO.github.io/TU_REPO/tonconnect-manifest.json"
+  manifestUrl: "https://romerocolador-del.github.io/tapquest/tonconnect-manifest.json"
 });
 
 async function connectWallet(){
