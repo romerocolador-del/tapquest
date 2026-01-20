@@ -253,23 +253,40 @@ setInterval(()=>{
 
 updateMenu();
 
-// TON CONNECT INIT
-const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://romerocolador-del.github.io/tapquest/tonconnect-manifest.json'
-});
+/* ===============================
+   TON CONNECT – INTEGRACIÓN REAL
+================================ */
 
-// CONNECT
-async function connectWallet(){
-  await tonConnectUI.connectWallet();
-}
+let tonConnectUI = null;
 
-// WALLET STATUS
-tonConnectUI.onStatusChange(wallet => {
-  if(wallet){
-    const addr = wallet.account.address;
-    document.getElementById("walletAddress").textContent =
-      "Wallet conectada: " + addr.slice(0,6) + "..." + addr.slice(-4);
-  }else{
-    document.getElementById("walletAddress").textContent = "";
-  }
+window.addEventListener("load", () => {
+
+  tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: "https://romerocolador-del.github.io/tapquest/tonconnect-manifest.json"
+  });
+
+  const btn = document.getElementById("connectBtn");
+
+  btn.addEventListener("click", async () => {
+    try {
+      await tonConnectUI.connectWallet();
+    } catch(e){
+      console.log("TON error", e);
+    }
+  });
+
+  tonConnectUI.onStatusChange(wallet => {
+    if(wallet){
+      document.getElementById("walletAddress").textContent =
+        "✅ Wallet: " +
+        wallet.account.address.slice(0,6) +
+        "..." +
+        wallet.account.address.slice(-4);
+
+      // 🔐 EJEMPLO: desbloquear el juego
+      btn.textContent = "🔓 Wallet Conectada";
+      btn.disabled = true;
+    }
+  });
+
 });
