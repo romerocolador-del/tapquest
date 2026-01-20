@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>TON TEST</title>
+
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+</head>
+
+<body style="background:#000;color:#fff;text-align:center;padding:40px">
+
+<h2>TON CONNECT TEST</h2>
+
+<button id="btn">🔗 Conectar Wallet</button>
+
+<p id="status">Estado: desconectado</p>
+
+<script>
+window.onload = () => {
+
+  const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: 'https://romerocolador-del.github.io/tapquest/tonconnect-manifest.json'
+  });
+
+  document.getElementById("btn").onclick = async () => {
+    await tonConnectUI.connectWallet();
+  };
+
+  tonConnectUI.onStatusChange(wallet => {
+    if(wallet){
+      document.getElementById("status").textContent =
+        "Conectado: " + wallet.account.address;
+    }
+  });
+};
+</script>
+
+</body>
+</html>
