@@ -1,0 +1,147 @@
+:root{
+  --bg1:#050b18;
+  --bg2:#0b1c36;
+  --card:rgba(255,255,255,.06);
+  --accent:#4aa3ff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(180deg,var(--bg2),var(--bg1));
+  color:#fff;
+  font-family:system-ui,-apple-system;
+  text-align:center;
+}
+
+.screen{display:none;padding:18px}
+.show{display:block}
+
+.card{
+  background:var(--card);
+  backdrop-filter:blur(14px);
+  padding:16px;
+  border-radius:18px;
+  margin-bottom:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  font-size:16px;
+  font-weight:700;
+  margin-top:10px;
+}
+
+.play{background:#2ecc71;color:#000}
+.tap{background:var(--accent);color:#000}
+.inv{background:#fbc02d;color:#000}
+.back{background:#555;color:#fff}
+
+.bar{
+  width:100%;
+  height:14px;
+  background:#111;
+  border-radius:10px;
+  overflow:hidden;
+  margin:10px 0;
+}
+
+.fill{height:100%;transition:.25s}
+.hp{background:linear-gradient(90deg,#ff5252,#ff1744)}
+
+.enemy{
+  width:170px;height:170px;
+  margin:24px auto;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:54px;
+  position:relative;
+  transition:.15s;
+  box-shadow:0 0 25px rgba(74,163,255,.6);
+}
+
+.enemy.hit{transform:scale(1.1)}
+.enemy.crit{box-shadow:0 0 45px #ff1744}
+
+.weapon{
+  font-size:70px;
+  margin:10px 0;
+  transition:.15s;
+}
+
+.weapon.swing{transform:rotate(-35deg) scale(1.2)}
+.weapon.crit{filter:drop-shadow(0 0 16px #ff1744)}
+
+.float{
+  position:absolute;
+  font-weight:800;
+  animation:float 1s forwards;
+  pointer-events:none;
+}
+
+@keyframes float{
+  from{opacity:1;transform:translate(-50%,0)}
+  to{opacity:0;transform:translate(-50%,-70px)}
+}
+
+.particle{
+  position:absolute;
+  width:6px;height:6px;
+  border-radius:50%;
+  animation:particle .7s forwards;
+}
+
+@keyframes particle{
+  to{opacity:0;transform:translate(var(--x),var(--y)) scale(0)}
+}
+
+.timer{
+  font-size:14px;
+  opacity:.85;
+}
+
+.item{
+  background:rgba(255,255,255,.05);
+  padding:12px;
+  border-radius:14px;
+  margin:8px 0;
+  display:flex;
+  justify-content:space-between;
+  cursor:pointer;
+}
+
+.common{border-left:6px solid #aaa}
+.rare{border-left:6px solid #4aa3ff}
+.epic{border-left:6px solid #b388ff}
+.legendary{border-left:6px solid #ffca28}
+.mythic{border-left:6px solid #ff1744}
+.ultra{border-left:6px solid #fff}
+.god{border-left:6px solid #00e5ff}
+
+.popup{
+  position:fixed;
+  top:20%;
+  left:50%;
+  transform:translateX(-50%);
+  padding:16px 22px;
+  border-radius:16px;
+  font-weight:bold;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(10px);
+  animation:popup 2s forwards;
+}
+
+@keyframes popup{
+  0%{opacity:0}
+  15%{opacity:1}
+  85%{opacity:1}
+  100%{opacity:0}
+        }
