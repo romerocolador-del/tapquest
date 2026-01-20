@@ -253,12 +253,23 @@ setInterval(()=>{
 
 updateMenu();
 
-let tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: "https://romerocolador-del.github.io/tapquest/tonconnect-manifest.json"
+// TON CONNECT INIT
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: 'https://romerocolador-del.github.io/tapquest/tonconnect-manifest.json'
 });
 
+// CONNECT
 async function connectWallet(){
-  const wallet = await tonConnectUI.connectWallet();
-  document.getElementById("walletAddress").innerText =
-    wallet.account.address.slice(0,6)+"..."+wallet.account.address.slice(-4);
+  await tonConnectUI.connectWallet();
 }
+
+// WALLET STATUS
+tonConnectUI.onStatusChange(wallet => {
+  if(wallet){
+    const addr = wallet.account.address;
+    document.getElementById("walletAddress").textContent =
+      "Wallet conectada: " + addr.slice(0,6) + "..." + addr.slice(-4);
+  }else{
+    document.getElementById("walletAddress").textContent = "";
+  }
+});
