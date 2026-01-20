@@ -9,6 +9,15 @@ const hpBar = document.getElementById("hpBar");
 const weaponTimer = document.getElementById("weaponTimer");
 const itemsDiv = document.getElementById("items");
 
+async function claimReward(){
+  if(!tonConnectUI.connected){
+    alert("Conecta tu wallet primero");
+    return;
+  }
+
+  alert("🔐 Transacción simulada\n(El smart contract se agrega después)");
+}
+
 /* === BOTONES === */
 playBtn.onclick = startGame;
 attackBtn.onclick = attack;
