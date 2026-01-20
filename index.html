@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TapQuest – Reinos de TON</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- MENU -->
+<div id="menu" class="screen show">
+  <h1>⚔️ TapQuest</h1>
+
+<div class="card">
+  <button onclick="connectWallet()">🔗 Conectar Wallet TON</button>
+  <div id="walletAddress">No conectado</div>
+</div>
+
+  <div class="card">
+    Nivel: <span id="level">1</span><br>
+    XP: <span id="xp">0</span>/100<br>
+    Zona: <span id="zoneName"></span><br>
+    Arma: <span id="weaponName">Ninguna</span>
+  </div>
+
+  <button class="play" id="playBtn">🌍 Explorar</button>
+  <button class="inv" id="invBtn">🎒 Inventario</button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+  <h2 id="zoneTitle"></h2>
+
+  <div class="bar">
+    <div id="hpBar" class="fill hp"></div>
+  </div>
+
+  <div id="enemy" class="enemy">👾</div>
+  <div id="weapon" class="weapon">🗡️</div>
+  <div id="weaponTimer" class="timer"></div>
+
+  <button class="tap" id="attackBtn">⚔️ ATACAR</button>
+  <button class="back" id="backBtn">⬅️ Volver</button>
+</div>
+
+<!-- INVENTORY -->
+<div id="inventory" class="screen">
+  <h2>🎒 Inventario</h2>
+  <div id="items"></div>
+  <button class="back" id="closeInvBtn">⬅️ Volver</button>
+</div>
+
+<script src="game.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+</body>
+</html>
