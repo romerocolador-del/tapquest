@@ -8,7 +8,7 @@ if (tg) {
 }
 
 /* ===============================
-ELEMENTOS
+ELEMENTOS 
 ================================ */
 const menu = document.getElementById("menu");
 const game = document.getElementById("game");
