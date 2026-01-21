@@ -1,4 +1,6 @@
-/* === ELEMENTOS === */
+/* ===============================
+   ELEMENTOS
+================================ */
 const menu = document.getElementById("menu");
 const game = document.getElementById("game");
 const inventory = document.getElementById("inventory");
@@ -9,23 +11,18 @@ const hpBar = document.getElementById("hpBar");
 const weaponTimer = document.getElementById("weaponTimer");
 const itemsDiv = document.getElementById("items");
 
-async function claimReward(){
-  if(!tonConnectUI.connected){
-    alert("Conecta tu wallet primero");
-    return;
-  }
-
-  alert("🔐 Transacción simulada\n(El smart contract se agrega después)");
-}
-
-/* === BOTONES === */
+/* ===============================
+   BOTONES
+================================ */
 playBtn.onclick = startGame;
 attackBtn.onclick = attack;
 backBtn.onclick = backMenu;
 invBtn.onclick = openInventory;
 closeInvBtn.onclick = closeInventory;
 
-/* === DATA === */
+/* ===============================
+   DATA DEL JUGADOR
+================================ */
 let player = {
   level: 1,
   xp: 0,
@@ -33,8 +30,12 @@ let player = {
   inventory: {}
 };
 
-let difficulty = 1; // 🔥 escalado global
+let tq = 0; // 💰 TapQuest Coins ganados
+let difficulty = 1;
 
+/* ===============================
+   ARMAS
+================================ */
 const weapons = [
   {name:"Espada Común",dmg:2,rarity:"common"},
   {name:"Lanza Rara",dmg:6,rarity:"rare"},
@@ -45,6 +46,9 @@ const weapons = [
   {name:"Cazadora de Dioses",dmg:55,rarity:"god"}
 ];
 
+/* ===============================
+   ZONAS
+================================ */
 const zones = [
   {name:"🌲 Bosque",min:1,enemy:"🟢",boss:"🌳"},
   {name:"🏜️ Desierto",min:5,enemy:"🦂",boss:"👑"},
@@ -52,6 +56,9 @@ const zones = [
   {name:"🌋 Volcán",min:15,enemy:"😈",boss:"🐉"}
 ];
 
+/* ===============================
+   ENEMIGO
+================================ */
 let enemy = {
   hp: 100,
   maxHp: 100,
@@ -59,7 +66,9 @@ let enemy = {
   boss: false
 };
 
-/* === HELPERS === */
+/* ===============================
+   HELPERS
+================================ */
 function popup(text){
   const p = document.createElement("div");
   p.className = "popup";
@@ -72,15 +81,20 @@ function currentZone(){
   return zones.slice().reverse().find(z => player.level >= z.min);
 }
 
-/* === UI === */
+/* ===============================
+   UI
+================================ */
 function updateMenu(){
   level.textContent = player.level;
   xp.textContent = player.xp;
   zoneName.textContent = currentZone().name;
   weaponName.textContent = player.weapon ? player.weapon.name : "Ninguna";
+  document.getElementById("tq").innerText = "$TQ: " + tq;
 }
 
-/* === NAVEGACIÓN === */
+/* ===============================
+   NAVEGACIÓN
+================================ */
 function startGame(){
   menu.classList.remove("show");
   game.classList.add("show");
@@ -105,7 +119,9 @@ function closeInventory(){
   updateMenu();
 }
 
-/* === ENEMIGOS === */
+/* ===============================
+   ENEMIGOS
+================================ */
 function spawnEnemy(){
   const z = currentZone();
 
@@ -130,7 +146,9 @@ function updateHp(){
   hpBar.style.width = Math.max(0, enemy.hp / enemy.maxHp * 100) + "%";
 }
 
-/* === COMBATE === */
+/* ===============================
+   COMBATE
+================================ */
 function attack(){
   if(!enemy.alive) return;
 
@@ -155,8 +173,6 @@ function attack(){
 
   const f = document.createElement("div");
   f.className = "float";
-  f.style.left = "50%";
-  f.style.top = "50%";
   f.textContent = (crit ? "CRIT " : "-") + dmg;
   enemyDiv.appendChild(f);
   setTimeout(()=>f.remove(),1000);
@@ -172,18 +188,16 @@ function attack(){
   }
 }
 
-/* === DROPS (50% menos → 15%) === */
+/* ===============================
+   DROPS (15%)
+================================ */
 function dropWeapon(){
   if(Math.random() > 0.15) return;
 
   const w = weapons[Math.floor(Math.random()*weapons.length)];
 
   if(!player.inventory[w.name]){
-    player.inventory[w.name] = {
-      ...w,
-      qty: 0,
-      time: 30 // ⏳ 30 segundos
-    };
+    player.inventory[w.name] = {...w, qty:0, time:30};
   }
 
   if(player.inventory[w.name].qty < 999){
@@ -193,12 +207,18 @@ function dropWeapon(){
   popup("🎁 " + w.name);
 }
 
-/* === VICTORIA === */
+/* ===============================
+   GANAR ENEMIGO
+================================ */
 function winEnemy(){
+  const reward = enemy.boss ? 5 : 1;
+  tq += reward;
+  popup("💰 +" + reward + " $TQ");
+
   player.xp += enemy.boss ? 50 : 25;
 
   if(enemy.boss){
-    difficulty *= 2; // 🔥 ESCALADO REAL
+    difficulty *= 2;
     popup("⚠️ DIFICULTAD x" + difficulty);
   }
 
@@ -213,7 +233,9 @@ function winEnemy(){
   spawnEnemy();
 }
 
-/* === INVENTARIO === */
+/* ===============================
+   INVENTARIO
+================================ */
 function renderInventory(){
   itemsDiv.innerHTML = "";
 
@@ -234,7 +256,9 @@ function renderInventory(){
   }
 }
 
-/* === TIMER DE ARMAS (30s) === */
+/* ===============================
+   TIMER DE ARMAS
+================================ */
 setInterval(()=>{
   if(player.weapon){
     player.weapon.time--;
@@ -251,29 +275,53 @@ setInterval(()=>{
   }
 },1000);
 
-updateMenu();
+/* ===============================
+   TELEGRAM → BOT (CLAIM)
+================================ */
+function enviarTQalBot(cantidad){
+  if(!window.Telegram || !Telegram.WebApp){
+    alert("Abre el juego desde Telegram");
+    return;
+  }
+
+  Telegram.WebApp.sendData(JSON.stringify({
+    type: "reward",
+    amount: cantidad
+  }));
+}
+
+async function claimReward(){
+  if(tq <= 0){
+    alert("No tienes $TQ para reclamar");
+    return;
+  }
+
+  enviarTQalBot(tq);
+  alert("✅ Enviaste " + tq + " $TQ al bot");
+
+  tq = 0;
+  updateMenu();
+}
 
 /* ===============================
-   TON CONNECT – INTEGRACIÓN REAL
+   TON CONNECT
 ================================ */
-
 let tonConnectUI = null;
 
 window.addEventListener("load", () => {
-
   tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
     manifestUrl: "https://romerocolador-del.github.io/tapquest/tonconnect-manifest.json"
   });
 
   const btn = document.getElementById("connectBtn");
 
-  btn.addEventListener("click", async () => {
+  btn.onclick = async () => {
     try {
       await tonConnectUI.connectWallet();
     } catch(e){
-      console.log("TON error", e);
+      console.log(e);
     }
-  });
+  };
 
   tonConnectUI.onStatusChange(wallet => {
     if(wallet){
@@ -283,10 +331,10 @@ window.addEventListener("load", () => {
         "..." +
         wallet.account.address.slice(-4);
 
-      // 🔐 EJEMPLO: desbloquear el juego
       btn.textContent = "🔓 Wallet Conectada";
       btn.disabled = true;
     }
   });
-
 });
+
+updateMenu();
