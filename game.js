@@ -221,7 +221,7 @@ function winEnemy(){
   player.xp += enemy.boss ? 50 : 25;
 
   if(enemy.boss){
-    difficulty *= 2;
+    difficulty *= 1.5;
     popup("⚠️ DIFICULTAD x" + difficulty);
   }
 
