@@ -244,7 +244,10 @@ for(const k in player.inventory){
 const w = player.inventory[k];
 const d = document.createElement("div");
 d.className = "item " + w.rarity;
-d.innerHTML =   <span>${w.name} x${w.qty}<br>⏳ ${w.time}s</span>   <span>+${w.dmg}</span>  ;
+d.innerHTML = `
+  <span>${w.name} x${w.qty}<br>⏳ ${w.time}s</span>
+  <span>+${w.dmg}</span>
+`;
 d.onclick = ()=>{player.weapon = w; closeInventory();};
 itemsDiv.appendChild(d);
 }
