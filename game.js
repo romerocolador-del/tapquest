@@ -32,6 +32,9 @@ let player = {
 
 let tq = 0; // 💰 TapQuest Coins ganados
 let difficulty = 1;
+function actualizarTQ(){
+  document.getElementById("tq").innerText = "$TQ: " + tqGanado;
+}
 
 /* ===============================
    ARMAS
@@ -211,9 +214,9 @@ function dropWeapon(){
    GANAR ENEMIGO
 ================================ */
 function winEnemy(){
-  const reward = enemy.boss ? 5 : 1;
-  tq += reward;
-  popup("💰 +" + reward + " $TQ");
+  const recompensa = enemy.boss ? 5 : 1; // 🔥 AJUSTABLE
+  tqGanado += recompensa;
+  actualizarTQ();
 
   player.xp += enemy.boss ? 50 : 25;
 
@@ -290,17 +293,34 @@ function enviarTQalBot(cantidad){
   }));
 }
 
+function enviarRecompensaAlBot(cantidad){
+  if (!window.Telegram || !Telegram.WebApp) {
+    console.log("No es Telegram WebApp");
+    return;
+  }
+
+  Telegram.WebApp.sendData(JSON.stringify({
+    type: "reward",
+    amount: cantidad
+  }));
+}
+
 async function claimReward(){
-  if(tq <= 0){
+  if(!tonConnectUI || !tonConnectUI.connected){
+    alert("Conecta tu wallet primero");
+    return;
+  }
+
+  if(tqGanado <= 0){
     alert("No tienes $TQ para reclamar");
     return;
   }
 
-  enviarTQalBot(tq);
-  alert("✅ Enviaste " + tq + " $TQ al bot");
+  enviarRecompensaAlBot(tqGanado);
+  alert("📤 Enviado al bot: " + tqGanado + " $TQ");
 
-  tq = 0;
-  updateMenu();
+  tqGanado = 0;
+  actualizarTQ();
 }
 
 /* ===============================
@@ -338,3 +358,4 @@ window.addEventListener("load", () => {
 });
 
 updateMenu();
+actualizarTQ();
