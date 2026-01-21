@@ -280,30 +280,32 @@ weaponTimer.textContent = "";
 /* ===============================
 TELEGRAM → BOT (CLAIM)
 ================================ */
-function enviarRecompensaAlBot(cantidad){
-if (!window.Telegram || !Telegram.WebApp) return;
+function claimReward(){
+  if (!window.Telegram || !Telegram.WebApp) {
+    alert("Abre el juego desde Telegram")
+    return
+  }
 
-Telegram.WebApp.sendData(JSON.stringify({
-type: "reward",
-amount: cantidad
-}));
-}
+  if (tq <= 0) {
+    alert("No tienes $TQ")
+    return
+  }
 
-async function claimReward(){
-if(!tonConnectUI || !tonConnectUI.connected){
-alert("Conecta tu wallet primero");
-return;
-}
+  // 🔥 MUY IMPORTANTE
+  Telegram.WebApp.ready()
 
-if(tq <= 0){
-alert("No tienes $TQ");
-return;
-}
+  Telegram.WebApp.sendData(JSON.stringify({
+    type: "reward",
+    amount: tq
+  }))
 
-enviarRecompensaAlBot(tq);
-alert("📤 Enviado al bot: " + tq + " $TQ");
-tq = 0;
-actualizarTQ();
+  alert("📤 $TQ enviados al bot: " + tq)
+
+  tq = 0
+  actualizarTQ()
+
+  // 🔥 CIERRA LA WEBAPP (garantiza envío)
+  Telegram.WebApp.close()
 }
 
 /* ===============================
