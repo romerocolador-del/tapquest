@@ -55,5 +55,54 @@
 </div>
 
 <script src="game.js"></script>
+  <script>
+/* =========================
+   TAPQUEST – TQ SYSTEM
+   ========================= */
+
+let tq = 0;
+
+// Actualiza el texto en pantalla
+function actualizarTQ() {
+  const el = document.getElementById("tq");
+  if (el) el.innerText = "$TQ: " + tq;
+}
+
+// Cuando el jugador gana TQ
+function ganarTQ(cantidad = 1) {
+  tq += cantidad;
+  actualizarTQ();
+}
+
+// Enviar TQ al bot de Telegram
+function enviarRecompensa(cantidad) {
+  if (!window.Telegram || !Telegram.WebApp) {
+    alert("Abre el juego desde Telegram");
+    return;
+  }
+
+  Telegram.WebApp.sendData(JSON.stringify({
+    type: "reward",
+    amount: cantidad
+  }));
+
+  alert("Has enviado " + cantidad + " TQ al bot");
+}
+
+// Botón Reclamar TapCoin
+function claimReward() {
+  if (tq <= 0) {
+    alert("No tienes TQ para reclamar");
+    return;
+  }
+
+  enviarRecompensa(tq);
+  tq = 0;
+  actualizarTQ();
+}
+
+// Inicializar
+document.addEventListener("DOMContentLoaded", actualizarTQ);
+  </script>
 </body>
 </html>
