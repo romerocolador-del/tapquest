@@ -1,0 +1,437 @@
+/* ================= BASE ================= */
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #e5e7eb;
+  min-height: 100vh;
+  overflow-x: hidden;
+
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+
+  /* Fondo vivo y profundo */
+  background:
+    radial-gradient(circle at 20% 10%, #1e293b, transparent 45%),
+    radial-gradient(circle at 80% 20%, #020617, transparent 50%),
+    radial-gradient(circle at 50% 90%, #0f172a, transparent 60%),
+    linear-gradient(180deg, #020617, #000);
+}
+
+/* Overlay sutil para dar vida */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+
+  background:
+    radial-gradient(circle at top, rgba(34,197,94,0.06), transparent 60%),
+    radial-gradient(circle at bottom, rgba(124,58,237,0.05), transparent 70%);
+}
+
+/* ================= CONTENEDOR ================= */
+#game {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ================= PANTALLAS ================= */
+.screen {
+  position: absolute;
+  inset: 0;
+  min-height: 100vh;
+  padding: 16px;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transform: translateX(20px) scale(0.97);
+  filter: blur(4px);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    filter 0.25s ease;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: auto;
+
+  transform: translateX(0) scale(1);
+  filter: blur(0);
+}
+
+/* Contenido centrado */
+.screen > * {
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ================= BOTONES ================= */
+button {
+  width: 100%;
+  padding: 15px;
+  margin: 12px 0;
+  font-size: 18px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+
+  color: white;
+  font-weight: bold;
+
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    0 10px 20px rgba(0,0,0,0.6),
+    0 6px 0 #14532d;
+
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    opacity 0.2s ease;
+}
+
+button:active {
+  transform: scale(0.96) translateY(4px);
+  box-shadow:
+    inset 0 4px 8px rgba(0,0,0,0.6),
+    0 2px 0 #14532d;
+}
+
+button.crit {
+  animation: pulse 0.3s;
+}
+
+/* Botón volver */
+.back {
+  background: linear-gradient(180deg, #16a085, #0e6655);
+}
+
+/* ================= ANIMACIONES ================= */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* ================= ENEMIGO ================= */
+.enemy {
+  position: relative;
+  margin: 20px 0;
+  padding: 15px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.05);
+}
+
+.enemy-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.4)),
+    radial-gradient(circle at top, rgba(34,197,94,0.15), transparent 70%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    0 20px 40px rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+}
+
+.enemy.hit {
+  animation: shake 0.2s;
+}
+
+.enemy.boss {
+  background:
+    radial-gradient(circle at top, rgba(124,58,237,0.25), transparent 70%);
+  box-shadow:
+    0 0 30px rgba(124,58,237,0.8),
+    0 20px 50px rgba(0,0,0,0.8);
+}
+
+.enemy.final {
+  background:
+    radial-gradient(circle at top, rgba(34,197,94,0.35), transparent 70%);
+  box-shadow:
+    0 0 40px rgba(34,197,94,0.9),
+    0 25px 60px rgba(0,0,0,0.9);
+  animation: bossGlow 2s infinite alternate;
+}
+
+@keyframes bossGlow {
+  from { box-shadow: 0 0 25px rgba(34,197,94,0.6); }
+  to   { box-shadow: 0 0 45px rgba(34,197,94,1); }
+}
+
+/* ================= VIDA ================= */
+#enemy-name {
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+}
+
+.bar {
+  height: 16px;
+  background: linear-gradient(180deg, #020617, #1e293b);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+}
+
+#enemy-hp {
+  height: 100%;
+  width: 100%;
+  background:
+    linear-gradient(90deg, #dc2626, #ef4444 40%, #f87171);
+  box-shadow:
+    inset 0 0 6px rgba(255,255,255,0.4),
+    0 0 10px rgba(239,68,68,0.6);
+  transition: width 0.3s ease;
+}
+
+/* ================= DAÑO ================= */
+#damage-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.damage {
+  position: absolute;
+  font-size: 20px;
+  font-weight: bold;
+  animation: floatUp 0.8s ease-out forwards;
+  text-shadow:
+    0 0 6px rgba(0,0,0,0.8),
+    0 0 12px rgba(0,0,0,0.5);
+}
+
+.damage.crit {
+  color: gold;
+  font-size: 26px;
+  text-shadow:
+    0 0 10px gold,
+    0 0 20px rgba(255,215,0,0.8);
+}
+
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-35px); }
+}
+
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-6px); }
+  50%  { transform: translateX(6px); }
+  75%  { transform: translateX(-6px); }
+  100% { transform: translateX(0); }
+}
+/* ================= INVENTARIO ================= */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.inventory-card {
+  position: relative;
+  padding: 14px;
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.12),
+      rgba(255,255,255,0.02)
+    );
+
+  border: 1px solid rgba(255,255,255,0.15);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.inventory-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+/* Emoji grande */
+.inventory-icon {
+  font-size: 32px;
+  margin-bottom: 6px;
+}
+
+/* Nombre del objeto */
+.inventory-name {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+/* Efecto */
+.inventory-effect {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+/* Duración */
+.inventory-time {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 10px;
+}
+
+/* Botón equipar */
+.inventory-card button {
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 0;
+}
+/* Ocultar inventario de texto (legacy) */
+#screen-inventory ul#inventory {
+  display: none;
+}
+/* ================= EFECTO ACTIVO ================= */
+
+.active-effect {
+  margin-top: 8px;
+  padding: 8px 14px;
+  display: inline-block;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #00ffcc, #00cc99);
+  color: #003333;
+  box-shadow: 0 0 14px rgba(0,255,204,0.6);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+/* ================= RAREZAS ================= */
+.inventory-card {
+  border-left: 4px solid var(--rarity-color, #9ca3af);
+}
+
+.active-effect {
+  --rarity-color: #00ffcc;
+  background: linear-gradient(
+    135deg,
+    var(--rarity-color),
+    rgba(255,255,255,0.2)
+  );
+  box-shadow: 0 0 18px var(--rarity-color);
+}
+/* ================= FONDO GLOBAL ================= */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: radial-gradient(
+    circle at top,
+    #34d399 0%,
+    #16a34a 40%,
+    #065f46 100%
+  );
+  min-height: 100vh;
+}
+
+/* ================= PANTALLAS ================= */
+.screen {
+  min-height: 100vh;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.08),
+    rgba(0,0,0,0.12)
+  );
+  backdrop-filter: blur(2px);
+}
+
+/* ================= MENU ================= */
+#screen-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+}
+
+/* ================= BOTONES ================= */
+.menu-button {
+  width: 90%;
+  max-width: 420px;
+  margin: 14px 0;
+  padding: 18px;
+  font-size: 1.2rem;
+  border-radius: 18px;
+  border: none;
+  color: white;
+  background: linear-gradient(180deg, #22c55e, #15803d);
+  box-shadow:
+    0 10px 0 #166534,
+    0 18px 35px rgba(0,0,0,0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.menu-button:active {
+  transform: translateY(6px);
+  box-shadow:
+    0 4px 0 #166534,
+    0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* ================= DECORACIÓN ================= */
+.menu-decor {
+  font-size: 3.5rem;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,0.25));
+}
+#level-ui {
+  width: 90%;
+  margin: 10px auto;
+  text-align: center;
+  font-family: inherit;
+}
+
+#level-text {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+#xp-bar-container {
+  width: 100%;
+  height: 12px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#xp-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  transition: width 0.3s ease;
+}
+
+#xp-text {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 3px;
+  }
