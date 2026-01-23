@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TapQuest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= MENU ================= -->
+<div id="screen-menu" class="screen active">
+  <h1>🌲 TapQuest</h1>
+  <div id="tq-points">🪙 tq: 0</div>
+  <button onclick="openScreen('game')">🎮 Jugar</button>
+  <button onclick="exchangeGoldToTQ(50)">
+  Canjear Oro → $TQ
+</button>
+<button onclick="requestWithdraw(100)">
+  Retirar 100 $TQ
+</button>
+</div>
+
+<!-- ================= GAME ================= -->
+<div id="screen-game" class="screen">
+  <button class="back" onclick="openScreen('menu')">⬅ Menú</button>
+
+  <div id="enemy" class="enemy enemy-card">
+    <h2 id="enemy-name"></h2>
+    <div class="bar"><div id="enemy-hp"></div></div>
+    <p id="enemy-life"></p>
+    <div id="damage-container"></div>
+  </div>
+
+  <button id="attack">⚔ TAP PARA ATACAR</button>
+
+  <p id="log"></p>
+  <p>🪙 Oro: <span id="gold">0</span></p>
+  <div id="level-ui">
+  <div id="level-text">Nivel 1</div>
+  <div id="xp-bar-container">
+    <div id="xp-bar"></div>
+  </div>
+  <div id="xp-text">0 / 20 XP</div>
+</div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
